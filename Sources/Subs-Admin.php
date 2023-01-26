@@ -3,11 +3,11 @@
 /**
  * This file contains functions that are specifically done by administrators.
  *
- * Simple Machines Forum (SMF)
+ * Teagend
  *
- * @package SMF
- * @author Simple Machines https://www.simplemachines.org
- * @copyright 2022 Simple Machines and individual contributors
+ * @package Teagend
+ * @author Teagend https://teagend.com/
+ * @copyright 2023 Teagend and individual contributors (see contributors.txt)
  * @license https://www.simplemachines.org/about/smf/license.php BSD
  *
  * @version 2.1.2
@@ -347,10 +347,10 @@ function get_settings_defs()
 				'/**',
 				' * The settings file contains all of the basic settings that need to be present when a database/cache is not available.',
 				' *',
-				' * Simple Machines Forum (SMF)',
+				' * Teagend',
 				' *',
-				' * @package SMF',
-				' * @author Simple Machines https://www.simplemachines.org',
+				' * @package Teagend',
+				' * @author Teagend https://teagend.com/',
 				' * @copyright ' . SMF_SOFTWARE_YEAR . ' Simple Machines and individual contributors',
 				' * @license https://www.simplemachines.org/about/smf/license.php BSD',
 				' *',
@@ -1048,7 +1048,7 @@ function updateSettingsFile($config_vars, $keep_quotes = null, $rebuild = false)
 		if (!empty($setting_def['text']))
 		{
 			// Special handling for the license block: always at the beginning.
-			if (strpos($setting_def['text'], "* @package SMF\n") !== false)
+			if (strpos($setting_def['text'], "* @package Teagend\n") !== false)
 			{
 				$substitutions[$var]['search_pattern'] = $setting_def['search_pattern'];
 				$substitutions[$var]['placeholder'] = '';

@@ -3,11 +3,11 @@
 /**
  * This file handles actions made on a user's profile.
  *
- * Simple Machines Forum (SMF)
+ * Teagend
  *
- * @package SMF
- * @author Simple Machines https://www.simplemachines.org
- * @copyright 2022 Simple Machines and individual contributors
+ * @package Teagend
+ * @author Teagend https://teagend.com/
+ * @copyright 2023 Teagend and individual contributors (see contributors.txt)
  * @license https://www.simplemachines.org/about/smf/license.php BSD
  *
  * @version 2.1.0

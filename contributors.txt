@@ -1,0 +1,61 @@
+Teagend might be powered by tea, but someone has to tackle the rather difficult task of the actual drinking!
+
+
+Contributors to Teagend in alphabetic order:
+
+Jeff Lewis
+Peter "Arantor" Spicer
+
+
+
+-------------------------------------------------------------------------------
+
+The following is the original contributors list from SMF 2.1 from which Teagend is derived.
+
+Simple Machines wants to thank everyone who helped make SMF 2.1 what it is today!
+Those who contributed their time and effort in the form of code submissions, and in SMF's various teams including;
+Project Management, Support Specialists, Customizers, Doc Writers, Localizers, Marketing, Site Team and Server Team.
+
+
+Project Management
+    Aleksi "Lex" Kilpinen, Michele "Illori" Davis, Jessica "Suki" González, and Will "Kindred" Wagner. 
+Developers
+    Shawn Bulen, John "live627" Rayes, Oscar "Ozp" Rydhé, Aaron van Geffen, Antechinus, Bjoern "Bloc" Kristiansen, Brad "IchBin™" Grow, Colin Schoen, emanuele, Hendrik Jan "Compuart" Visser, Jessica "Suki" González, Jon "Sesquipedalian" Stovell, Juan "JayBachatero" Hernandez, Karl "RegularExpression" Benson, Matthew "Labradoodle-360" Kerle, Grudge, Michael "Oldiesmann" Eshom, Michael "Thantos" Miller, Norv, Peter "Arantor" Spicer, Selman "[SiNaN]" Eser, Shitiz "Dragooon" Garg, Theodore "Orstio" Hildebrandt, Thorsten "TE" Eurich, and winrules. 
+Support Specialists
+    Will "Kindred" Wagner, Doug Heffernan, lurkalot, shadav, Steve, Aleksi "Lex" Kilpinen, br360, GigaWatt, ziycon, Adam Tallon, Bigguy, Bruno "margarett" Alves, CapadY, ChalkCat, Chas Large, Duncan85, gbsothere, JimM, Justyne, Kat, Kevin "greyknight17" Hou, Krash, Mashby, Michael Colin Blaber, Old Fossil, S-Ace, Storman™, Wade "sησω" Poulsen, and xenovanis. 
+Customizers
+    Diego Andrés, GL700Wing, Johnnie "TwitchisMental" Ballew, Jonathan "vbgamer45" Valentin, Michael "Mick." Gomez, Sami "SychO" Mazouz, Brannon "B" Hall, Gary M. Gadsdon, Jack "akabugeyes" Thorsen, Jason "JBlaze" Clemons, Joey "Tyrsson" Smith, Kays, NanoSector, Ricky., Russell "NEND" Najar, and SA™. 
+Documentation Writers
+    Michele "Illori" Davis, Irisado, AngelinaBelle, Chainy, Graeme Spence, and Joshua "groundup" Dickerson. 
+Localizers
+    Nikola "Dzonny" Novaković, m4z, Francisco "d3vcho" Domínguez, Robert Monden, and Relyana. 
+Marketing
+    Adish "(F.L.A.M.E.R)" Patel, Bryan "Runic" Deakin, Marcus "cσσкιє мσηѕтєя" Forsberg, and Ralph "[n3rve]" Otowo. 
+Site Administrators
+    Jeremy "SleePy" Darwood. 
+Servers Administrators
+    Derek Schwab, Michael Johnson, and Liroy van Hoewijk. 
+
+
+
+Consulting Developers
+    albertlast, Brett Flannigan, Mark Rose, René-Gilles "Nao 尚" Deberdt, tinoest, and everyone who contributed on GitHub. 
+Beta Testers
+    The invaluable few who tirelessly find bugs, provide feedback, and drive the developers crazier. 
+Language Translators
+    Thank you for your efforts which make it possible for people all around the world to use SMF. 
+Founding Father of SMF
+    Unknown W. "[Unknown]" Brackets. 
+Original Project Managers
+    Jeff Lewis, Joseph Fung, and David Recordon. 
+In loving memory of
+    Crip, K@, metallica48423, and Paul_Pauline. 
+
+And for anyone we may have missed, thank you!
+
+
+-------------------------------------------------------------------------------
+
+List of GitHub contributors as at January 26th, 2023:
+
+MissAllSunday, Sesquipedalian, live627, albertlast, Oldiesmann, Arantor, emanuele45, XinYenFon, Spuds, sbulen, jdarwood007, SychO9, NanoSector, Dragooon, BrickOzp, Gwenwyfar, DiegoAndresCortes, SGA-oscar-rydhe, dragomano, frandominguezl, Underdog-01, illori, tinoest, colinschoen, margarett, FearThe1337, AngelinaBelle, norv, MisterVector, Trekkie101, SSPMark, VBGAMER45, Butterflysaway, Kays48, WhistlingDonkey, hhy89, Rupurudu, Archer70, equinoxmatt, bit2shift, AaronVanGeffen, asmith20002, gizmo71, islam2hamy, ThomasFok, nwsw, Sorck, HorusGoul, isaak654, mikemill, tallona, NicolasBonet, antes, Hristo-, skysky6, Fustrate, PierreLvx, eurich, DuncanFairley, grdenrique, ahrasis, pouvik, srvrguy, Nao, sicommnend, georaldc, Dzonny, siddhartha-gupta, DrDeejay, aivchen, sstok, Grudge, AnthonyCalandra, felixk3y, sexwarrior, Jujucristine, beratdogan, CodeMonkeyClyde, liviuroman, shnazzle, butchs, scrutinizer-auto-fixer, Daniel15

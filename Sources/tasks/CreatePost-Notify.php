@@ -5,11 +5,11 @@
  * is relevant to them in some way: new topics in boards they watch, replies to
  * topics they watch, posts that mention them, and/or posts that quote them.
  *
- * Simple Machines Forum (SMF)
+ * Teagend
  *
- * @package SMF
- * @author Simple Machines https://www.simplemachines.org
- * @copyright 2022 Simple Machines and individual contributors
+ * @package Teagend
+ * @author Teagend https://teagend.com/
+ * @copyright 2023 Teagend and individual contributors (see contributors.txt)
  * @license https://www.simplemachines.org/about/smf/license.php BSD
  *
  * @version 2.1.3

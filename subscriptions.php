@@ -4,11 +4,11 @@
  * This file is the file which all subscription gateways should call
  * when a payment has been received - it sorts out the user status.
  *
- * Simple Machines Forum (SMF)
+ * Teagend
  *
- * @package SMF
- * @author Simple Machines https://www.simplemachines.org
- * @copyright 2022 Simple Machines and individual contributors
+ * @package Teagend
+ * @author Teagend https://teagend.com/
+ * @copyright 2023 Teagend and individual contributors (see contributors.txt)
  * @license https://www.simplemachines.org/about/smf/license.php BSD
  *
  * @version 2.1.2
