@@ -70,6 +70,7 @@ if (empty($cachedir) || !is_dir($cachedir) || !is_writable($cachedir))
 }
 
 // Without those we can't go anywhere
+require_once(__DIR__ . '/vendor/autoload.php');
 require_once($sourcedir . '/QueryString.php');
 require_once($sourcedir . '/Subs.php');
 require_once($sourcedir . '/Subs-Auth.php');
@@ -102,8 +103,6 @@ spl_autoload_register(function ($class) use ($sourcedir)
 {
 	$classMap = array(
 		'ReCaptcha\\' => 'ReCaptcha/',
-		'MatthiasMullie\\Minify\\' => 'minify/src/',
-		'MatthiasMullie\\PathConverter\\' => 'minify/path-converter/src/',
 		'SMF\\Cache\\' => 'Cache/',
 	);
 
