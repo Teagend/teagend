@@ -197,7 +197,7 @@ function smf_fileUpload(oOptions) {
 						url: smf_prepareScriptUrl(smf_scripturl) + 'action=uploadAttach;sa=delete;attach=' + attachmentId + ';' + smf_session_var + '=' + smf_session_id + (current_board ? ';board=' + current_board : ''),
 						type: 'GET',
 						headers: {
-							"X-SMF-AJAX": 1
+							"X-Tea-AJAX": 1
 						},
 						xhrFields: {
 							withCredentials: typeof allow_xhjr_credentials !== "undefined" ? allow_xhjr_credentials : false

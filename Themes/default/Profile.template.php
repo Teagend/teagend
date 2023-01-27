@@ -2537,7 +2537,7 @@ function template_issueWarning()
 			$.ajax({
 				type: "POST",
 				headers: {
-					"X-SMF-AJAX": 1
+					"X-Tea-AJAX": 1
 				},
 				xhrFields: {
 					withCredentials: typeof allow_xhjr_credentials !== "undefined" ? allow_xhjr_credentials : false
