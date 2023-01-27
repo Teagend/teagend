@@ -95,7 +95,7 @@ $incontext['steps'] = array(
 );
 
 // Default title...
-$incontext['page_title'] = $txt['smf_installer'];
+$incontext['page_title'] = $txt['teagend_installer'];
 
 // What step are we on?
 $incontext['current_step'] = isset($_GET['step']) ? (int) $_GET['step'] : 0;
@@ -754,7 +754,7 @@ function DatabaseSettings()
 	}
 	else
 	{
-		$incontext['db']['prefix'] = 'smf_';
+		$incontext['db']['prefix'] = 'tea_';
 	}
 
 	// Are we submitting?
@@ -1866,7 +1866,7 @@ function template_install_above()
 <head>
 	<meta charset="', isset($txt['lang_character_set']) ? $txt['lang_character_set'] : 'UTF-8', '">
 	<meta name="robots" content="noindex">
-	<title>', $txt['smf_installer'], '</title>
+	<title>', $txt['teagend_installer'], '</title>
 	<link rel="stylesheet" href="Themes/default/css/index.css">
 	<link rel="stylesheet" href="Themes/default/css/install.css">
 	', $txt['lang_rtl'] == '1' ? '<link rel="stylesheet" href="Themes/default/css/rtl.css">' : '', '
@@ -1877,7 +1877,7 @@ function template_install_above()
 <body>
 	<div id="footerfix">
 	<div id="header">
-		<h1 class="forumtitle">', $txt['smf_installer'], '</h1>
+		<h1 class="forumtitle">', $txt['teagend_installer'], '</h1>
 		<img id="smflogo" src="Themes/default/images/smflogo.svg" alt="Simple Machines Forum" title="Simple Machines Forum">
 	</div>
 	<div id="wrapper">';
@@ -2198,7 +2198,7 @@ function template_database_settings()
 				<label for="db_name_input">', $txt['db_settings_database'], ':</label>
 			</dt>
 			<dd>
-				<input type="text" name="db_name" id="db_name_input" value="', empty($incontext['db']['name']) ? 'smf' : $incontext['db']['name'], '" size="30">
+				<input type="text" name="db_name" id="db_name_input" value="', empty($incontext['db']['name']) ? 'teagend' : $incontext['db']['name'], '" size="30">
 				<div class="smalltext">
 					', $txt['db_settings_database_info'], '
 					<span id="db_name_info_warning">', $txt['db_settings_database_info_note'], '</span>
