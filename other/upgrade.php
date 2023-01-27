@@ -13,8 +13,8 @@
 
 // Version information...
 define('SMF_VERSION', '2.1.3');
-define('SMF_FULL_VERSION', 'SMF ' . SMF_VERSION);
-define('SMF_SOFTWARE_YEAR', '2023');
+define('TEAGEND_FULL_VERSION', 'SMF ' . SMF_VERSION);
+define('TEAGEND_SOFTWARE_YEAR', '2023');
 define('SMF_LANG_VERSION', '2.1.3');
 define('SMF_INSTALLING', 1);
 
@@ -1853,7 +1853,7 @@ function DeleteUpgrade()
 		),
 		array(
 			time(), 3, $user_info['id'], $command_line ? '127.0.0.1' : $user_info['ip'], 'upgrade',
-			0, 0, 0, json_encode(array('version' => SMF_FULL_VERSION, 'member' => $user_info['id'])),
+			0, 0, 0, json_encode(array('version' => TEAGEND_FULL_VERSION, 'member' => $user_info['id'])),
 		),
 		array('id_action')
 	);
@@ -1898,7 +1898,7 @@ function cli_scheduled_fetchSMfiles()
 		$js_files[$row['id_file']] = array(
 			'filename' => $row['filename'],
 			'path' => $row['path'],
-			'parameters' => sprintf($row['parameters'], $language, urlencode($modSettings['time_format']), urlencode(SMF_FULL_VERSION)),
+			'parameters' => sprintf($row['parameters'], $language, urlencode($modSettings['time_format']), urlencode(TEAGEND_FULL_VERSION)),
 		);
 	}
 	$smcFunc['db_free_result']($request);
@@ -3954,7 +3954,7 @@ function template_upgrade_below()
 	</div><!-- #footerfix -->
 	<div id="footer">
 		<ul>
-			<li class="copyright"><a href="https://www.simplemachines.org/" title="Simple Machines Forum" target="_blank" rel="noopener">SMF &copy; ' . SMF_SOFTWARE_YEAR . ', Simple Machines</a></li>
+			<li class="copyright"><a href="https://www.simplemachines.org/" title="Simple Machines Forum" target="_blank" rel="noopener">SMF &copy; ' . TEAGEND_SOFTWARE_YEAR . ', Simple Machines</a></li>
 		</ul>
 	</div>';
 

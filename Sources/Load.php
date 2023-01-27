@@ -89,7 +89,7 @@ function reloadSettings()
 
 	// Used to force browsers to download fresh CSS and JavaScript when necessary
 	$modSettings['browser_cache'] = !empty($modSettings['browser_cache']) ? (int) $modSettings['browser_cache'] : 0;
-	$context['browser_cache'] = '?' . preg_replace('~\W~', '', strtolower(SMF_FULL_VERSION)) . '_' . $modSettings['browser_cache'];
+	$context['browser_cache'] = '?' . preg_replace('~\W~', '', strtolower(TEAGEND_FULL_VERSION)) . '_' . $modSettings['browser_cache'];
 
 	// Disable image proxy if we don't have SSL enabled
 	if (empty($modSettings['force_ssl']))

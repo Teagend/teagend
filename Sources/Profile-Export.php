@@ -853,7 +853,7 @@ function get_xslt_stylesheet($format, $uid)
 				'value' => $export_formats[$format]['extension'],
 			),
 			'forum_copyright' => array(
-				'value' => sprintf($forum_copyright, SMF_FULL_VERSION, SMF_SOFTWARE_YEAR, $scripturl),
+				'value' => sprintf($forum_copyright, TEAGEND_FULL_VERSION, TEAGEND_SOFTWARE_YEAR, $scripturl),
 			),
 			'txt_summary_heading' => array(
 				'value' => $txt['summary'],

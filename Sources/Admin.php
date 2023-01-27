@@ -536,7 +536,7 @@ function AdminHome()
 
 	// This makes it easier to get the latest news with your time format.
 	$context['time_format'] = urlencode($user_info['time_format']);
-	$context['forum_version'] = SMF_FULL_VERSION;
+	$context['forum_version'] = TEAGEND_FULL_VERSION;
 
 	// Get a list of current server versions.
 	require_once($sourcedir . '/Subs-Admin.php');
