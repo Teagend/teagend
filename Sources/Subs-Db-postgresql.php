@@ -39,6 +39,7 @@ function smf_db_initiate($db_server, $db_name, $db_user, $db_passwd, &$db_prefix
 		$smcFunc += array(
 			'db_query'                  => 'smf_db_query',
 			'db_quote'                  => 'smf_db_quote',
+			'db_count'                  => 'smf_db_count',
 			'db_insert'                 => 'smf_db_insert',
 			'db_insert_id'              => 'smf_db_insert_id',
 			'db_fetch_assoc'            => 'pg_fetch_assoc',
@@ -299,6 +300,18 @@ function smf_db_replacement__callback($matches)
 			smf_db_error_backtrace('Undefined type used in the database query. (' . $matches[1] . ':' . $matches[2] . ')', '', false, __FILE__, __LINE__);
 			break;
 	}
+}
+
+function smf_db_count(string $column, string $table): int
+{
+	$query = smf_db_query('', '
+		SELECT COUNT(' . $column . ')
+		FROM ' . $table);
+
+	[$count] = pg_fetch_row($query);
+	pg_free_result($query);
+
+	return (int) $count;
 }
 
 /**

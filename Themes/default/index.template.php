@@ -797,4 +797,30 @@ function template_maint_warning_below()
 
 }
 
+
+function template_session_messages_above()
+{
+	$messages = session_flash_retrieve();
+
+	$groups = [
+		'error' => 'errorbox',
+		'warning' => 'noticebox',
+		'success' => 'infobox',
+	];
+
+	foreach ($groups as $message_type => $class)
+	{
+		if (!empty($messages[$message_type]))
+		{
+			foreach ($messages[$message_type] as $message)
+				echo '<div class="', $class, '">', $message, '</div>';
+		}
+	}
+}
+
+function template_session_messages_below()
+{
+
+}
+
 ?>

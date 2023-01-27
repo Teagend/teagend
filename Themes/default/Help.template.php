@@ -162,9 +162,15 @@ function template_manual()
 					<p>', $txt['manual_introduction'], '</p>
 					<ul>';
 
-	foreach ($context['manual_sections'] as $section_id => $wiki_id)
-		echo '
-						<li><a href="', $context['wiki_url'], '/', $context['wiki_prefix'], $wiki_id, ($txt['lang_dictionary'] != 'en' ? '/' . $txt['lang_dictionary'] : ''), '" target="_blank" rel="noopener">', $txt['manual_section_' . $section_id . '_title'], '</a> - ', $txt['manual_section_' . $section_id . '_desc'], '</li>';
+	foreach ($context['manual_sections'] as $section_id => $section)
+	{
+		if (is_array($section))
+			echo '
+						<li><a href="', $section['link'], '">', $section['title'], !empty($section['desc']) ? ' - ' . $section['desc'] : '', '</li>';
+		else
+			echo '
+						<li><a href="', $context['wiki_url'], '/', $context['wiki_prefix'], $section, ($txt['lang_dictionary'] != 'en' ? '/' . $txt['lang_dictionary'] : ''), '" target="_blank" rel="noopener">', $txt['manual_section_' . $section_id . '_title'], '</a> - ', $txt['manual_section_' . $section_id . '_desc'], '</li>';
+	}
 
 	echo '
 					</ul>

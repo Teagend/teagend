@@ -32,6 +32,7 @@ $txt['admin_news'] = 'Enable News';
 $txt['admin_manage_members'] = 'Members';
 $txt['admin_main'] = 'Main';
 $txt['admin_config'] = 'Configuration';
+$txt['admin_pages'] = 'Pages';
 $txt['admin_version_check'] = 'Detailed version check';
 $txt['admin_smffile'] = 'SMF File';
 $txt['admin_smfpackage'] = 'SMF Package';

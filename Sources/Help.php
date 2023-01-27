@@ -72,6 +72,17 @@ function HelpIndex()
 		'name' => $txt['help'],
 	);
 
+	$pages = get_custom_help_pages();
+	if (!empty($pages))
+	{
+		foreach ($pages as $id_page => $page)
+			$context['manual_sections']['page_' . $id_page] = [
+				'title' => $page['page_title'],
+				'desc' => '',
+				'link' => $scripturl . '?action=pages;page=' . $page['page_name'],
+			];
+	}
+
 	// Lastly, some minor template stuff.
 	$context['page_title'] = $txt['manual_smf_user_help'];
 	$context['sub_template'] = 'manual';
@@ -142,6 +153,62 @@ function ShowAdminHelp()
 	// Don't show any template layers, just the popup sub template.
 	$context['template_layers'] = array();
 	$context['sub_template'] = 'popup';
+}
+
+
+function get_custom_help_pages()
+{
+	global $smcFunc, $user_info;
+
+	$pages = [];
+
+	$base_access = allowedTo('admin_forum') ? 'a' : 'x';
+
+	$request = $smcFunc['db_query']('', '
+		SELECT id_page, page_name, page_title
+		FROM {db_prefix}pages
+		WHERE show_help = 1
+		ORDER BY page_title');
+	while ($row = $smcFunc['db_fetch_assoc']($request))
+	{
+		$row['access'] = $base_access;
+		$pages[$row['id_page']] = $row;
+	}
+	$smcFunc['db_free_result']($request);
+
+	if (empty($pages))
+		return [];
+
+	// Admins don't need to check.
+	if (allowedTo('admin_forum'))
+		return $pages;
+
+	$request = $smcFunc['db_query']('', '
+		SELECT id_page, MAX(allow_deny) AS access
+		FROM {db_prefix}pages_access
+		WHERE id_page IN ({array_int:pages})
+			AND id_group IN ({array_int:groups})
+		GROUP BY id_page',
+		[
+			'pages' => array_keys($pages),
+			'groups' => $user_info['groups'],
+		]
+	);
+	while ($row = $smcFunc['db_fetch_assoc']($request))
+	{
+		$pages[$row['id_page']]['access'] = $row['access'] ? 'd' : 'a';
+	}
+	$smcFunc['db_free_result']($request);
+
+	foreach ($pages as $id_page => $page)
+	{
+		if ($page['access'] != 'a')
+		{
+			unset($pages[$id_page]);
+		}
+	}
+
+	return $pages;
 }
 
 ?>

@@ -4193,6 +4193,43 @@ function obExit($header = null, $do_footer = null, $from_index = false, $from_fa
 }
 
 /**
+ * Add a notification to the session to be shown on the next page the user sees.
+ *
+ * @param string $status The status of the message (success, warning, error)
+ * @param string $message The message to show to the user
+ */
+function session_flash(string $status, string $message): void
+{
+	if (!in_array($status, ['success', 'warning', 'error']))
+	{
+		fatal_error('Invalid session flash');
+	}
+
+	$current_messages = $_SESSION['flash'] ?? [];
+	if (!isset($current_messages[$status]) || !in_array($message, $current_messages[$status]))
+	{
+		$_SESSION['flash'][$status][] = $message;
+	}
+}
+
+/**
+ * Retrieve all the queued notifications from the user's session for this page load.
+ *
+ * @return array A map of status -> messages to be shown
+ */
+function session_flash_retrieve(): array
+{
+	$current_messages = $_SESSION['flash'] ?? [];
+	$messages = [];
+	foreach (['error', 'warning', 'success'] as $status)
+		$messages[$status] = $current_messages[$status] ?? [];
+
+	unset($_SESSION['flash']);
+
+	return $messages;
+}
+
+/**
  * Get the size of a specified image with better error handling.
  *
  * @todo see if it's better in Subs-Graphics, but one step at the time.
@@ -4545,6 +4582,9 @@ function template_header()
 
 	$checked_securityFiles = false;
 	$showed_banned = false;
+	if (!empty($context['template_layers']))
+		$context['template_layers'][] = 'session_messages';
+
 	foreach ($context['template_layers'] as $layer)
 	{
 		loadSubTemplate($layer . '_above', true);

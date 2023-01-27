@@ -1266,6 +1266,43 @@ CREATE TABLE {$db_prefix}package_servers (
 	PRIMARY KEY (id_server)
 );
 
+#
+# Sequence for table `pages`
+#
+
+CREATE SEQUENCE {$db_prefix}pages_seq;
+
+#
+# Table structure for table `pages`
+#
+
+CREATE TABLE {$db_prefix}pages (
+	id_page int DEFAULT nextval('{$db_prefix}pages_seq'),
+	page_name VARCHAR(64) NOT NULL DEFAULT '',
+	page_title VARCHAR(255) NOT NULL DEFAULT '',
+	page_content TEXT,
+	show_help smallint NOT NULL DEFAULT 0,
+	show_custom_field smallint NOT NULL DEFAULT 0,
+	custom_field_filter SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+	PRIMARY KEY (id_page)
+);
+
+#
+# Indexes for table `pages`
+#
+
+CREATE INDEX {$db_prefix}pages_page_name ON {$db_prefix}pages (page_name);
+
+#
+# Table structure for table `pages_access`
+#
+
+CREATE TABLE {$db_prefix}pages_access (
+	id_page INT DEFAULT '0',
+	id_group SMALLINT DEFAULT '0',
+	allow_deny TINYINT NOT NULL DEFAULT '1',
+	PRIMARY KEY (id_page, id_group)
+);
 
 #
 # Sequence for table `permission_profiles`
