@@ -375,6 +375,7 @@ function smf_main()
 		'notifyannouncements' => array('Notify.php', 'AnnouncementsNotify'),
 		'notifyboard' => array('Notify.php', 'BoardNotify'),
 		'notifytopic' => array('Notify.php', 'TopicNotify'),
+		'pages' => array('Pages.php', 'Pages'),
 		'pm' => array('PersonalMessage.php', 'MessageMain'),
 		'post' => array('Post.php', 'Post'),
 		'post2' => array('Post.php', 'Post2'),

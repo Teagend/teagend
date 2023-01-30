@@ -853,6 +853,33 @@ CREATE TABLE {$db_prefix}package_servers (
 ) ENGINE={$engine};
 
 #
+# Table structure for table `pages`
+#
+
+CREATE TABLE {$db_prefix}pages (
+	id_page MEDIUMINT UNSIGNED AUTO_INCREMENT,
+	page_name VARCHAR(64) NOT NULL DEFAULT '',
+	page_title VARCHAR(255) NOT NULL DEFAULT '',
+	page_content MEDIUMTEXT,
+	show_help TINYINT UNSIGNED NOT NULL DEFAULT 0,
+	show_custom_field SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+	custom_field_filter SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+	PRIMARY KEY (id_page),
+	INDEX (page_name(30))
+) ENGINE={$engine};
+
+#
+# Table structure for table `pages_access`
+#
+
+CREATE TABLE {$db_prefix}pages_access (
+	id_page MEDIUMINT DEFAULT '0',
+	id_group SMALLINT DEFAULT '0',
+	allow_deny TINYINT NOT NULL DEFAULT '1',
+	PRIMARY KEY (id_page, id_group)
+) ENGINE={$engine};
+
+#
 # Table structure for table `permission_profiles`
 #
 

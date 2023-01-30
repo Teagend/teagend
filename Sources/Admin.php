@@ -69,6 +69,12 @@ function AdminMain()
 						'settings' => array($txt['settings'], 'admin_forum'),
 					),
 				),
+				'pages' => array(
+					'label' => $txt['admin_pages'],
+					'file' => 'ManagePages.php',
+					'function' => 'ManagePages',
+					'icon' => 'manage_pages',
+				),
 				'packages' => array(
 					'label' => $txt['package'],
 					'file' => 'Packages.php',

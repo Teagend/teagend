@@ -37,6 +37,7 @@ function smf_db_initiate($db_server, $db_name, $db_user, $db_passwd, $db_prefix,
 		$smcFunc += array(
 			'db_query'                  => 'smf_db_query',
 			'db_quote'                  => 'smf_db_quote',
+			'db_count'                  => 'smf_db_count',
 			'db_fetch_assoc'            => 'mysqli_fetch_assoc',
 			'db_fetch_row'              => 'mysqli_fetch_row',
 			'db_free_result'            => 'mysqli_free_result',
@@ -151,6 +152,18 @@ function smf_db_select($database, $connection = null)
 {
 	global $db_connection;
 	return mysqli_select_db($connection === null ? $db_connection : $connection, $database);
+}
+
+function smf_db_count(string $column, string $table): int
+{
+	$query = smf_db_query('', '
+		SELECT COUNT(' . $column . ')
+		FROM ' . $table);
+
+	[$count] = mysqli_fetch_row($query);
+	mysqli_free_result($query);
+
+	return (int) $count;
 }
 
 /**
