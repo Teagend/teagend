@@ -7,6 +7,11 @@
             "php": "8.1"
         }
     },
+    "autoload": {
+        "psr-4": {
+            "Teagend\\": "Sources/Teagend/"
+        }
+    },
     "require": {
         "matthiasmullie/minify": "^1.3"
     }
