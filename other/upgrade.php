@@ -777,15 +777,6 @@ function loadEssentialData()
 			die($txt['error_db_connect_settings'] . '<br><br>' . $db_error);
 		}
 
-		if ($db_type == 'mysql' && isset($db_character_set) && preg_match('~^\w+$~', $db_character_set) === 1)
-			$smcFunc['db_query']('', '
-				SET NAMES {string:db_character_set}',
-				array(
-					'db_error_skip' => true,
-					'db_character_set' => $db_character_set,
-				)
-			);
-
 		// Load the modSettings data...
 		$request = $smcFunc['db_query']('', '
 			SELECT variable, value

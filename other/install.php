@@ -1076,15 +1076,6 @@ function DatabasePopulation()
 	}
 	$modSettings['disableQueryCheck'] = true;
 
-	// If doing UTF8, select it. PostgreSQL requires passing it as a string...
-	$smcFunc['db_query']('', '
-		SET NAMES {string:utf8}',
-		array(
-			'db_error_skip' => true,
-			'utf8' => 'utf8',
-		)
-	);
-
 	// Windows likes to leave the trailing slash, which yields to C:\path\to\SMF\/attachments...
 	if (substr(__DIR__, -1) == '\\')
 		$attachdir = __DIR__ . 'attachments';
@@ -1658,14 +1649,6 @@ function DeleteInstall()
 	// Bring a warning over.
 	if (!empty($incontext['account_existed']))
 		$incontext['warning'] = $incontext['account_existed'];
-
-	$smcFunc['db_query']('', '
-		SET NAMES {string:db_character_set}',
-		array(
-			'db_character_set' => $db_character_set,
-			'db_error_skip' => true,
-		)
-	);
 
 	// As track stats is by default enabled let's add some activity.
 	$smcFunc['db_insert']('ignore',
