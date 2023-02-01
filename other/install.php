@@ -11,6 +11,8 @@
  * @version 2.1.3
  */
 
+use Teagend\Schema\Schema;
+
 define('SMF_VERSION', '2.1.3');
 define('SMF_FULL_VERSION', 'SMF ' . SMF_VERSION);
 define('SMF_SOFTWARE_YEAR', '2023');
@@ -32,6 +34,7 @@ if (!defined('SMF'))
 	define('SMF', 1);
 
 require_once('Sources/Class-Package.php');
+require_once('vendor/autoload.php');
 
 if (version_compare(PHP_VERSION, '8.0.0', '>='))
 	require_once('Sources/Subs-Compat.php');
@@ -1126,8 +1129,8 @@ function DatabasePopulation()
 		$replaces['{$memory}'] = (!$has_innodb && in_array('MEMORY', $engines)) ? 'MEMORY' : $replaces['{$engine}'];
 
 		// UTF-8 is required.
-		$replaces['{$engine}'] .= ' DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci';
-		$replaces['{$memory}'] .= ' DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci';
+		$replaces['{$engine}'] .= ' DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci';
+		$replaces['{$memory}'] .= ' DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci';
 
 		// One last thing - if we don't have InnoDB, we can't do transactions...
 		if (!$has_innodb)
@@ -1155,6 +1158,28 @@ function DatabasePopulation()
 		'table_dups' => 0,
 		'insert_dups' => 0,
 	);
+
+	// Create all the tables we know we need.
+	$schema = Schema::get_tables();
+	foreach ($schema as $count => $table)
+	{
+		if (!$table->exists()) {
+			$result = $table->create();
+			if ($result)
+			{
+				$incontext['sql_results']['tables']++;
+			}
+			else
+			{
+				$incontext['failures'][$count] = $smcFunc['db_error']($db_connection);
+			}
+		}
+		else
+		{
+			$incontext['sql_results']['table_dups']++;
+			$exists[] = $table->get_table_name();
+		}
+	}
 	foreach ($sql_lines as $count => $line)
 	{
 		// No comments allowed!
@@ -1196,9 +1221,7 @@ function DatabasePopulation()
 		}
 		else
 		{
-			if (preg_match('~^\s*CREATE TABLE ([^\s\n\r]+?)~', $current_statement, $match) == 1)
-				$incontext['sql_results']['tables']++;
-			elseif (preg_match('~^\s*INSERT INTO ([^\s\n\r]+?)~', $current_statement, $match) == 1)
+			if (preg_match('~^\s*INSERT INTO ([^\s\n\r]+?)~', $current_statement, $match) == 1)
 			{
 				preg_match_all('~\)[,;]~', $current_statement, $matches);
 				if (!empty($matches[0]))
