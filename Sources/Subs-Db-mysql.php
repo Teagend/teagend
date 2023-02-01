@@ -57,7 +57,6 @@ function smf_db_initiate($db_server, $db_name, $db_user, $db_passwd, $db_prefix,
 			'db_case_sensitive'         => false,
 			'db_escape_wildcard_string' => 'smf_db_escape_wildcard_string',
 			'db_is_resource'            => 'smf_is_resource',
-			'db_mb4'                    => false,
 			'db_ping'                   => 'mysqli_ping',
 			'db_fetch_all'              => 'smf_db_fetch_all',
 			'db_error_insert'			=> 'smf_db_error_insert',
@@ -107,8 +106,6 @@ function smf_db_initiate($db_server, $db_name, $db_user, $db_passwd, $db_prefix,
 
 	mysqli_query($connection, 'SET SESSION sql_mode = \'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,PIPES_AS_CONCAT\'');
 
-	if (!empty($db_options['db_mb4']))
-		$smcFunc['db_mb4'] = (bool) $db_options['db_mb4'];
 	mysqli_set_charset($connection, 'utf8mb4');
 
 	return $connection;

@@ -2231,11 +2231,7 @@ function fixchardb__callback($matches)
 
 	$num = $matches[1][0] === 'x' ? hexdec(substr($matches[1], 1)) : (int) $matches[1];
 
-	// it's to big for mb3?
-	if ($num > 0xFFFF && !$smcFunc['db_mb4'])
-		return $matches[0];
-	else
-		return fixchar__callback($matches);
+	return fixchar__callback($matches);
 }
 
 ?>

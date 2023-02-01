@@ -342,7 +342,7 @@ function load_lang_file()
 function load_database()
 {
 	global $db_prefix, $db_connection, $sourcedir, $smcFunc, $modSettings, $db_port;
-	global $db_server, $db_passwd, $db_type, $db_name, $db_user, $db_persist, $db_mb4;
+	global $db_server, $db_passwd, $db_type, $db_name, $db_user, $db_persist;
 
 	if (empty($sourcedir))
 		$sourcedir = dirname(__FILE__) . '/Sources';
@@ -365,9 +365,6 @@ function load_database()
 
 		if (!empty($db_port))
 			$options['port'] = $db_port;
-
-		if (!empty($db_mb4))
-			$options['db_mb4'] = $db_mb4;
 
 		if (!$db_connection)
 			$db_connection = smf_db_initiate($db_server, $db_name, $db_user, $db_passwd, $db_prefix, $options);
@@ -701,7 +698,7 @@ function CheckFilesWritable()
 function DatabaseSettings()
 {
 	global $txt, $databases, $incontext, $smcFunc, $sourcedir;
-	global $db_server, $db_name, $db_user, $db_passwd, $db_port, $db_mb4, $db_connection;
+	global $db_server, $db_name, $db_user, $db_passwd, $db_port, $db_connection;
 
 	$incontext['sub_template'] = 'database_settings';
 	$incontext['page_title'] = $txt['db_settings'];
@@ -832,9 +829,6 @@ function DatabaseSettings()
 		// Add in the port if needed
 		if (!empty($db_port))
 			$options['port'] = $db_port;
-
-		if (!empty($db_mb4))
-			$options['db_mb4'] = $db_mb4;
 
 		$db_connection = smf_db_initiate($db_server, $db_name, $db_user, $db_passwd, $db_prefix, $options);
 

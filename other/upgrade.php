@@ -651,7 +651,7 @@ function loadEssentialData()
 {
 	global $db_server, $db_user, $db_passwd, $db_name, $db_connection;
 	global $db_prefix, $db_character_set, $db_type, $db_port, $db_show_debug;
-	global $db_mb4, $modSettings, $sourcedir, $smcFunc, $txt, $utf8;
+	global $modSettings, $sourcedir, $smcFunc, $txt, $utf8;
 
 	// Report all errors if admin wants them or this is a pre-release version.
 	if (!empty($db_show_debug) || strspn(SMF_VERSION, '1234567890.') !== strlen(SMF_VERSION))
@@ -752,9 +752,6 @@ function loadEssentialData()
 			// Add in the port if needed
 			if (!empty($db_port))
 				$options['port'] = $db_port;
-
-			if (!empty($db_mb4))
-				$options['db_mb4'] = $db_mb4;
 
 			$db_connection = smf_db_initiate($db_server, $db_name, $db_user, $db_passwd, $db_prefix, $options);
 		}
