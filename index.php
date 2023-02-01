@@ -86,6 +86,13 @@ if (!empty($maintenance) &&  2 === $maintenance)
 	display_maintenance_message();
 }
 
+// If a Preflight is occurring, lets stop now.
+if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'OPTIONS')
+{
+	send_http_status(204);
+	die;
+}
+
 // Create a variable to store some SMF specific functions in.
 $smcFunc = array();
 
@@ -149,13 +156,6 @@ if (empty($modSettings['rand_seed']) || mt_rand(1, 250) == 69)
 require_once($sourcedir . '/Session.php');
 require_once($sourcedir . '/Logging.php');
 require_once($sourcedir . '/Class-BrowserDetect.php');
-
-// If a Preflight is occurring, lets stop now.
-if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'OPTIONS')
-{
-	send_http_status(204);
-	die;
-}
 
 // Before we get carried away, are we doing a scheduled task? If so save CPU cycles by jumping out!
 if (isset($_GET['scheduled']))

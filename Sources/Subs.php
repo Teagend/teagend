@@ -7746,6 +7746,12 @@ function https_redirect_active($url)
 	// Ask for the headers for the passed url, but via http...
 	// Need to add the trailing slash, or it puts it there & thinks there's a redirect when there isn't...
 	$url = str_ireplace('https://', 'http://', $url) . '/';
+
+	stream_context_set_default([
+		'http' => [
+			'method' => 'OPTIONS',
+		],
+	]);
 	$headers = @get_headers($url);
 	if ($headers === false)
 		return false;
