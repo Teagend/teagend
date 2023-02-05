@@ -11,6 +11,8 @@
  * @version 2.1.3
  */
 
+use Teagend\Schema\Schema;
+
 define('SMF_VERSION', '2.1.3');
 define('SMF_FULL_VERSION', 'SMF ' . SMF_VERSION);
 define('SMF_SOFTWARE_YEAR', '2023');
@@ -18,8 +20,6 @@ define('DB_SCRIPT_VERSION', '2-1');
 define('SMF_INSTALLING', 1);
 
 define('JQUERY_VERSION', '3.6.0');
-define('POSTGRE_TITLE', 'PostgreSQL');
-define('MYSQL_TITLE', 'MySQL');
 define('SMF_USER_AGENT', 'Mozilla/5.0 (' . php_uname('s') . ' ' . php_uname('m') . ') AppleWebKit/605.1.15 (KHTML, like Gecko)  SMF/' . strtr(SMF_VERSION, ' ', '.'));
 if (!defined('TIME_START'))
 	define('TIME_START', microtime(true));
@@ -34,6 +34,7 @@ if (!defined('SMF'))
 	define('SMF', 1);
 
 require_once('Sources/Class-Package.php');
+require_once('vendor/autoload.php');
 
 if (version_compare(PHP_VERSION, '8.0.0', '>='))
 	require_once('Sources/Subs-Compat.php');
@@ -67,55 +68,6 @@ $databases = array(
 		'validate_prefix' => function(&$value)
 		{
 			$value = preg_replace('~[^A-Za-z0-9_\$]~', '', $value);
-			return true;
-		},
-	),
-	'postgresql' => array(
-		'name' => 'PostgreSQL',
-		'version' => '9.6',
-		'version_check' => function() {
-			global $db_connection;
-			$request = pg_query($db_connection, 'SELECT version()');
-			list ($version) = pg_fetch_row($request);
-			list($pgl, $version) = explode(' ', $version);
-			return $version;
-		},
-		'supported' => function_exists('pg_connect'),
-		'always_has_db' => true,
-		'utf8_support' => function()
-		{
-			global $db_connection;
-			$request = pg_query($db_connection, 'SHOW SERVER_ENCODING');
-
-			list ($charcode) = pg_fetch_row($request);
-
-			if ($charcode == 'UTF8')
-				return true;
-			else
-				return false;
-		},
-		'utf8_version' => '8.0',
-		'utf8_version_check' => function (){
-			global $db_connection;
-			$request = pg_query($db_connection, 'SELECT version()');
-			list ($version) = pg_fetch_row($request);
-			list($pgl, $version) = explode(' ', $version);
-			return $version;
-		},
-		'validate_prefix' => function(&$value)
-		{
-			global $txt;
-
-			$value = preg_replace('~[^A-Za-z0-9_\$]~', '', $value);
-
-			// Is it reserved?
-			if ($value == 'pg_')
-				return $txt['error_db_prefix_reserved'];
-
-			// Is the prefix numeric?
-			if (preg_match('~^\d~', $value))
-				return $txt['error_db_prefix_numeric'];
-
 			return true;
 		},
 	),
@@ -390,7 +342,7 @@ function load_lang_file()
 function load_database()
 {
 	global $db_prefix, $db_connection, $sourcedir, $smcFunc, $modSettings, $db_port;
-	global $db_server, $db_passwd, $db_type, $db_name, $db_user, $db_persist, $db_mb4;
+	global $db_server, $db_passwd, $db_type, $db_name, $db_user, $db_persist;
 
 	if (empty($sourcedir))
 		$sourcedir = dirname(__FILE__) . '/Sources';
@@ -413,9 +365,6 @@ function load_database()
 
 		if (!empty($db_port))
 			$options['port'] = $db_port;
-
-		if (!empty($db_mb4))
-			$options['db_mb4'] = $db_mb4;
 
 		if (!$db_connection)
 			$db_connection = smf_db_initiate($db_server, $db_name, $db_user, $db_passwd, $db_prefix, $options);
@@ -749,7 +698,7 @@ function CheckFilesWritable()
 function DatabaseSettings()
 {
 	global $txt, $databases, $incontext, $smcFunc, $sourcedir;
-	global $db_server, $db_name, $db_user, $db_passwd, $db_port, $db_mb4, $db_connection;
+	global $db_server, $db_name, $db_user, $db_passwd, $db_port, $db_connection;
 
 	$incontext['sub_template'] = 'database_settings';
 	$incontext['page_title'] = $txt['db_settings'];
@@ -838,10 +787,8 @@ function DatabaseSettings()
 		// Only set the port if we're not using the default
 		if (!empty($_POST['db_port']))
 		{
-			// For MySQL, we can get the "default port" from PHP. PostgreSQL has no such option though.
+			// For MySQL, we can get the "default port" from PHP.
 			if (($db_type == 'mysql' || $db_type == 'mysqli') && $_POST['db_port'] != ini_get($db_type . '.default_port'))
-				$vars['db_port'] = (int) $_POST['db_port'];
-			elseif ($db_type == 'postgresql' && $_POST['db_port'] != 5432)
 				$vars['db_port'] = (int) $_POST['db_port'];
 		}
 
@@ -882,9 +829,6 @@ function DatabaseSettings()
 		// Add in the port if needed
 		if (!empty($db_port))
 			$options['port'] = $db_port;
-
-		if (!empty($db_mb4))
-			$options['db_mb4'] = $db_mb4;
 
 		$db_connection = smf_db_initiate($db_server, $db_name, $db_user, $db_passwd, $db_prefix, $options);
 
@@ -992,29 +936,6 @@ function ForumSettings()
 	$incontext['test_dbsession'] = (ini_get('session.auto_start') != 1);
 
 	$incontext['continue'] = 1;
-
-	// Check Postgres setting
-	if ( $db_type === 'postgresql')
-	{
-		load_database();
-		$result = $smcFunc['db_query']('', '
-			show standard_conforming_strings',
-			array(
-				'db_error_skip' => true,
-			)
-		);
-
-		if ($result !== false)
-		{
-			$row = $smcFunc['db_fetch_assoc']($result);
-			if ($row['standard_conforming_strings'] !== 'on')
-				{
-					$incontext['continue'] = 0;
-					$incontext['error'] = $txt['error_pg_scs'];
-				}
-			$smcFunc['db_free_result']($result);
-		}
-	}
 
 	// Setup the SSL checkbox...
 	$incontext['ssl_chkbx_protected'] = false;
@@ -1152,15 +1073,6 @@ function DatabasePopulation()
 	}
 	$modSettings['disableQueryCheck'] = true;
 
-	// If doing UTF8, select it. PostgreSQL requires passing it as a string...
-	$smcFunc['db_query']('', '
-		SET NAMES {string:utf8}',
-		array(
-			'db_error_skip' => true,
-			'utf8' => 'utf8',
-		)
-	);
-
 	// Windows likes to leave the trailing slash, which yields to C:\path\to\SMF\/attachments...
 	if (substr(__DIR__, -1) == '\\')
 		$attachdir = __DIR__ . 'attachments';
@@ -1211,8 +1123,8 @@ function DatabasePopulation()
 		$replaces['{$memory}'] = (!$has_innodb && in_array('MEMORY', $engines)) ? 'MEMORY' : $replaces['{$engine}'];
 
 		// UTF-8 is required.
-		$replaces['{$engine}'] .= ' DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci';
-		$replaces['{$memory}'] .= ' DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci';
+		$replaces['{$engine}'] .= ' DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci';
+		$replaces['{$memory}'] .= ' DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci';
 
 		// One last thing - if we don't have InnoDB, we can't do transactions...
 		if (!$has_innodb)
@@ -1240,6 +1152,28 @@ function DatabasePopulation()
 		'table_dups' => 0,
 		'insert_dups' => 0,
 	);
+
+	// Create all the tables we know we need.
+	$schema = Schema::get_tables();
+	foreach ($schema as $count => $table)
+	{
+		if (!$table->exists()) {
+			$result = $table->create();
+			if ($result)
+			{
+				$incontext['sql_results']['tables']++;
+			}
+			else
+			{
+				$incontext['failures'][$count] = $smcFunc['db_error']($db_connection);
+			}
+		}
+		else
+		{
+			$incontext['sql_results']['table_dups']++;
+			$exists[] = $table->get_table_name();
+		}
+	}
 	foreach ($sql_lines as $count => $line)
 	{
 		// No comments allowed!
@@ -1272,18 +1206,16 @@ function DatabasePopulation()
 				$exists[] = $match[1];
 				$incontext['sql_results']['table_dups']++;
 			}
-			// Don't error on duplicate indexes (or duplicate operators in PostgreSQL.)
-			elseif (!preg_match('~^\s*CREATE( UNIQUE)? INDEX ([^\n\r]+?)~', $current_statement, $match) && !($db_type == 'postgresql' && preg_match('~^\s*CREATE OPERATOR (^\n\r]+?)~', $current_statement, $match)))
+			// Don't error on duplicate indexes.
+			elseif (!preg_match('~^\s*CREATE( UNIQUE)? INDEX ([^\n\r]+?)~', $current_statement, $match))
 			{
-				// MySQLi requires a connection object. It's optional with MySQL and Postgres
+				// MySQLi requires a connection object.
 				$incontext['failures'][$count] = $smcFunc['db_error']($db_connection);
 			}
 		}
 		else
 		{
-			if (preg_match('~^\s*CREATE TABLE ([^\s\n\r]+?)~', $current_statement, $match) == 1)
-				$incontext['sql_results']['tables']++;
-			elseif (preg_match('~^\s*INSERT INTO ([^\s\n\r]+?)~', $current_statement, $match) == 1)
+			if (preg_match('~^\s*INSERT INTO ([^\s\n\r]+?)~', $current_statement, $match) == 1)
 			{
 				preg_match_all('~\)[,;]~', $current_statement, $matches);
 				if (!empty($matches[0]))
@@ -1643,6 +1575,8 @@ function AdminAccount()
 
 			$_POST['password1'] = hash_password($_POST['username'], $_POST['password1']);
 
+			$date_registered = time();
+
 			$incontext['member_id'] = $smcFunc['db_insert']('',
 				$db_prefix . 'members',
 				array(
@@ -1676,7 +1610,7 @@ function AdminAccount()
 					$_POST['email'],
 					1,
 					0,
-					time(),
+					$date_registered,
 					$incontext['member_salt'],
 					'',
 					'',
@@ -1694,6 +1628,48 @@ function AdminAccount()
 					'',
 				),
 				array('id_member'),
+				1
+			);
+
+			$incontext['character_id'] = $smcFunc['db_insert']('',
+				$db_prefix . 'characters',
+				[
+					'id_member' => 'int',
+					'character_name' => 'string',
+					'default_avatar' => 'int',
+					'avatar_rotation' => 'string',
+					'default_signature' => 'int',
+					'id_theme' => 'int',
+					'posts' => 'int',
+					'date_created' => 'int',
+					'last_active' => 'int',
+					'is_main' => 'int',
+					'main_char_group' => 'int',
+					'char_groups' => 'string',
+					'char_sheet' => 'int',
+					'char_topic' => 'int',
+					'retired' => 'int',
+					'is_npc' => 'int',
+				],
+				[
+					$incontext['member_id'],
+					$_POST['username'],
+					0,
+					'',
+					0,
+					0,
+					0,
+					$date_registered,
+					$date_registered,
+					1,
+					0,
+					'',
+					0,
+					0,
+					0,
+					0,
+				],
+				['id_character'],
 				1
 			);
 		}
@@ -1734,14 +1710,6 @@ function DeleteInstall()
 	// Bring a warning over.
 	if (!empty($incontext['account_existed']))
 		$incontext['warning'] = $incontext['account_existed'];
-
-	$smcFunc['db_query']('', '
-		SET NAMES {string:db_character_set}',
-		array(
-			'db_character_set' => $db_character_set,
-			'db_error_skip' => true,
-		)
-	);
 
 	// As track stats is by default enabled let's add some activity.
 	$smcFunc['db_insert']('ignore',
@@ -2292,19 +2260,6 @@ function template_database_settings()
 				<div class="smalltext">', $txt['db_settings_prefix_info'], '</div>
 			</dd>
 		</dl>';
-
-	// Toggles a warning related to db names in PostgreSQL
-	echo '
-		<script>
-			function toggleDBInput()
-			{
-				if (document.getElementById(\'db_type_input\').value == \'postgresql\')
-					document.getElementById(\'db_name_info_warning\').classList.add(\'hidden\');
-				else
-					document.getElementById(\'db_name_info_warning\').classList.remove(\'hidden\');
-			}
-			toggleDBInput();
-		</script>';
 }
 
 // Stick in their forum settings.

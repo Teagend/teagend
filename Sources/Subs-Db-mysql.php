@@ -53,12 +53,10 @@ function smf_db_initiate($db_server, $db_name, $db_user, $db_passwd, $db_prefix,
 			'db_transaction'            => 'smf_db_transaction',
 			'db_error'                  => 'mysqli_error',
 			'db_select_db'              => 'smf_db_select',
-			'db_title'                  => MYSQL_TITLE,
 			'db_sybase'                 => false,
 			'db_case_sensitive'         => false,
 			'db_escape_wildcard_string' => 'smf_db_escape_wildcard_string',
 			'db_is_resource'            => 'smf_is_resource',
-			'db_mb4'                    => false,
 			'db_ping'                   => 'mysqli_ping',
 			'db_fetch_all'              => 'smf_db_fetch_all',
 			'db_error_insert'			=> 'smf_db_error_insert',
@@ -108,8 +106,7 @@ function smf_db_initiate($db_server, $db_name, $db_user, $db_passwd, $db_prefix,
 
 	mysqli_query($connection, 'SET SESSION sql_mode = \'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,PIPES_AS_CONCAT\'');
 
-	if (!empty($db_options['db_mb4']))
-		$smcFunc['db_mb4'] = (bool) $db_options['db_mb4'];
+	mysqli_set_charset($connection, 'utf8mb4');
 
 	return $connection;
 }
@@ -368,7 +365,7 @@ function smf_db_quote($db_string, $db_values, $connection = null)
 /**
  * Do a query.  Takes care of errors too.
  *
- * @param string $identifier An identifier. Only used in Postgres when we need to do things differently...
+ * @param string $identifier An identifier.
  * @param string $db_string The database string
  * @param array $db_values = array() The values to be inserted into the string
  * @param resource $connection = null The connection to use (null to use $db_connection)
@@ -529,7 +526,7 @@ function smf_db_affected_rows($connection = null)
 /**
  * Gets the ID of the most recently inserted row.
  *
- * @param string $table The table (only used for Postgres)
+ * @param string $table The table
  * @param string $field = null The specific field (not used here)
  * @param resource $connection = null The connection (if null, $db_connection is used)
  * @return int The ID of the most recently inserted row

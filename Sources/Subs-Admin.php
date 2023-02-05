@@ -480,7 +480,7 @@ function get_settings_defs()
 				'########## Database Info ##########',
 				'/**',
 				' * The database type',
-				' * Default options: mysql, postgresql',
+				' * Default options: mysql',
 				' *',
 				' * @var string',
 				' */',
@@ -606,18 +606,6 @@ function get_settings_defs()
 			)),
 			'default' => false,
 			'type' => 'boolean',
-		),
-		'db_mb4' => array(
-			'text' => implode("\n", array(
-				'/**',
-				' * Override the default behavior of the database layer for mb4 handling',
-				' * null keep the default behavior untouched',
-				' *',
-				' * @var null|bool',
-				' */',
-			)),
-			'default' => null,
-			'type' => array('NULL', 'boolean'),
 		),
 		'cache_accelerator' => array(
 			'text' => implode("\n", array(
