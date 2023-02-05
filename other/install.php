@@ -1575,6 +1575,8 @@ function AdminAccount()
 
 			$_POST['password1'] = hash_password($_POST['username'], $_POST['password1']);
 
+			$date_registered = time();
+
 			$incontext['member_id'] = $smcFunc['db_insert']('',
 				$db_prefix . 'members',
 				array(
@@ -1608,7 +1610,7 @@ function AdminAccount()
 					$_POST['email'],
 					1,
 					0,
-					time(),
+					$date_registered,
 					$incontext['member_salt'],
 					'',
 					'',
@@ -1626,6 +1628,48 @@ function AdminAccount()
 					'',
 				),
 				array('id_member'),
+				1
+			);
+
+			$incontext['character_id'] = $smcFunc['db_insert']('',
+				$db_prefix . 'characters',
+				[
+					'id_member' => 'int',
+					'character_name' => 'string',
+					'default_avatar' => 'int',
+					'avatar_rotation' => 'string',
+					'default_signature' => 'int',
+					'id_theme' => 'int',
+					'posts' => 'int',
+					'date_created' => 'int',
+					'last_active' => 'int',
+					'is_main' => 'int',
+					'main_char_group' => 'int',
+					'char_groups' => 'string',
+					'char_sheet' => 'int',
+					'char_topic' => 'int',
+					'retired' => 'int',
+					'is_npc' => 'int',
+				],
+				[
+					$incontext['member_id'],
+					$_POST['username'],
+					0,
+					'',
+					0,
+					0,
+					0,
+					$date_registered,
+					$date_registered,
+					1,
+					0,
+					'',
+					0,
+					0,
+					0,
+					0,
+				],
+				['id_character'],
 				1
 			);
 		}
