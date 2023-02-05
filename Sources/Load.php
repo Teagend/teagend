@@ -73,7 +73,7 @@ function reloadSettings()
 	}
 
 	// Going anything further when the files don't match the database can make nasty messes (unless we're actively installing or upgrading)
-	if (!defined('SMF_INSTALLING') && (!isset($_REQUEST['action']) || $_REQUEST['action'] !== 'admin' || !isset($_REQUEST['area']) || $_REQUEST['area'] !== 'packages') && !empty($modSettings['smfVersion']) && version_compare(strtolower(strtr($modSettings['smfVersion'], array(' ' => '.'))), strtolower(strtr(SMF_VERSION, array(' ' => '.'))), '!='))
+	if (!defined('TEAGEND_INSTALLING') && (!isset($_REQUEST['action']) || $_REQUEST['action'] !== 'admin' || !isset($_REQUEST['area']) || $_REQUEST['area'] !== 'packages') && !empty($modSettings['smfVersion']) && version_compare(strtolower(strtr($modSettings['smfVersion'], array(' ' => '.'))), strtolower(strtr(SMF_VERSION, array(' ' => '.'))), '!='))
 	{
 		// Wipe the cached $modSettings values so they don't interfere with anything later
 		cache_put_data('modSettings', null);
@@ -89,7 +89,7 @@ function reloadSettings()
 
 	// Used to force browsers to download fresh CSS and JavaScript when necessary
 	$modSettings['browser_cache'] = !empty($modSettings['browser_cache']) ? (int) $modSettings['browser_cache'] : 0;
-	$context['browser_cache'] = '?' . preg_replace('~\W~', '', strtolower(SMF_FULL_VERSION)) . '_' . $modSettings['browser_cache'];
+	$context['browser_cache'] = '?' . preg_replace('~\W~', '', strtolower(TEAGEND_FULL_VERSION)) . '_' . $modSettings['browser_cache'];
 
 	// Disable image proxy if we don't have SSL enabled
 	if (empty($modSettings['force_ssl']))

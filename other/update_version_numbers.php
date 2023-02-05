@@ -82,13 +82,13 @@ $year = date_format(date_create(), 'Y');
 // These need to be updated for every new version, even if they have not otherwise changed
 $always_update = array('index.php', 'cron.php', 'proxy.php', 'SSI.php', 'other/install.php', 'other/upgrade.php', 'other/upgrade-helper.php', 'other/Settings.php', 'other/Settings_bak.php');
 
-// Update SMF_VERSION and SMF_SOFTWARE_YEAR
+// Update SMF_VERSION and TEAGEND_SOFTWARE_YEAR
 foreach ($always_update as $file)
 {
 	$content = $original_content = file_get_contents("$basedir/$file");
 
 	$content = preg_replace("~define\('SMF_VERSION', '" . $version_regex . "'\);~", "define('SMF_VERSION', '$new_version');", $content);
-	$content = preg_replace("~define\('SMF_SOFTWARE_YEAR', '\d{4}'\);~", "define('SMF_SOFTWARE_YEAR', '$year');", $content);
+	$content = preg_replace("~define\('TEAGEND_SOFTWARE_YEAR', '\d{4}'\);~", "define('TEAGEND_SOFTWARE_YEAR', '$year');", $content);
 
 	if ($content !== $original_content)
 		file_put_contents("$basedir/$file", $content);

@@ -351,7 +351,7 @@ function get_settings_defs()
 				' *',
 				' * @package Teagend',
 				' * @author Teagend https://teagend.com/',
-				' * @copyright ' . SMF_SOFTWARE_YEAR . ' Simple Machines and individual contributors',
+				' * @copyright ' . TEAGEND_SOFTWARE_YEAR . ' Simple Machines and individual contributors',
 				' * @license https://www.simplemachines.org/about/smf/license.php BSD',
 				' *',
 				' * @version ' . SMF_VERSION,
@@ -953,7 +953,7 @@ function updateSettingsFile($config_vars, $keep_quotes = null, $rebuild = false)
 	}
 
 	// During install/upgrade, don't set anything until we're ready for it.
-	if (defined('SMF_INSTALLING') && empty($rebuild))
+	if (defined('TEAGEND_INSTALLING') && empty($rebuild))
 	{
 		foreach ($settings_defs as $var => $setting_def)
 			if (!in_array($var, array_keys($new_settings_vars)) && !is_int($var))
@@ -1022,7 +1022,7 @@ function updateSettingsFile($config_vars, $keep_quotes = null, $rebuild = false)
 		),
 	);
 
-	if (defined('SMF_INSTALLING'))
+	if (defined('TEAGEND_INSTALLING'))
 		$substitutions[$neg_index--] = array(
 			'search_pattern' => '~/\*.*?SMF\s+1\.\d.*?\*/~s',
 			'placeholder' => '',
@@ -1126,7 +1126,7 @@ function updateSettingsFile($config_vars, $keep_quotes = null, $rebuild = false)
 				}
 			}
 			// Abort if a required one is undefined (unless we're installing).
-			elseif (!empty($setting_def['required']) && !defined('SMF_INSTALLING'))
+			elseif (!empty($setting_def['required']) && !defined('TEAGEND_INSTALLING'))
 				return false;
 
 			// Create the search pattern.
@@ -1243,7 +1243,7 @@ function updateSettingsFile($config_vars, $keep_quotes = null, $rebuild = false)
 	}
 
 	// During an upgrade, some of the path variables may not have been declared yet.
-	if (defined('SMF_INSTALLING') && empty($rebuild))
+	if (defined('TEAGEND_INSTALLING') && empty($rebuild))
 	{
 		preg_match_all('~^\h*\$(\w+)\s*=\s*~m', $substitutions[$pathcode_var]['replacement'], $matches);
 		$missing_pathvars = array_diff($matches[1], array_keys($substitutions));

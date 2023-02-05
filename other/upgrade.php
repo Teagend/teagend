@@ -13,13 +13,13 @@
 
 // Version information...
 define('SMF_VERSION', '2.1.3');
-define('SMF_FULL_VERSION', 'SMF ' . SMF_VERSION);
-define('SMF_SOFTWARE_YEAR', '2023');
+define('TEAGEND_FULL_VERSION', 'SMF ' . SMF_VERSION);
+define('TEAGEND_SOFTWARE_YEAR', '2023');
 define('SMF_LANG_VERSION', '2.1.3');
-define('SMF_INSTALLING', 1);
+define('TEAGEND_INSTALLING', 1);
 
 define('JQUERY_VERSION', '3.6.0');
-define('SMF_USER_AGENT', 'Mozilla/5.0 (' . php_uname('s') . ' ' . php_uname('m') . ') AppleWebKit/605.1.15 (KHTML, like Gecko)  SMF/' . strtr(SMF_VERSION, ' ', '.'));
+define('TEAGEND_USER_AGENT', 'Mozilla/5.0 (' . php_uname('s') . ' ' . php_uname('m') . ') AppleWebKit/605.1.15 (KHTML, like Gecko)  SMF/' . strtr(SMF_VERSION, ' ', '.'));
 if (!defined('TIME_START'))
 	define('TIME_START', microtime(true));
 
@@ -1381,67 +1381,6 @@ function UpgradeOptions()
 	// We cannot execute this step in strict mode - strict mode data fixes are not applied yet
 	setSqlMode(false);
 
-	// Firstly, if they're enabling SM stat collection just do it.
-	if (!empty($_POST['stats']) && substr($boardurl, 0, 16) != 'http://localhost' && empty($modSettings['allow_sm_stats']) && empty($modSettings['enable_sm_stats']))
-	{
-		$upcontext['allow_sm_stats'] = true;
-
-		// Don't register if we still have a key.
-		if (empty($modSettings['sm_stats_key']))
-		{
-			// Attempt to register the site etc.
-			$fp = @fsockopen('www.simplemachines.org', 443, $errno, $errstr);
-			if (!$fp)
-				$fp = @fsockopen('www.simplemachines.org', 80, $errno, $errstr);
-			if ($fp)
-			{
-				$out = 'GET /smf/stats/register_stats.php?site=' . base64_encode($boardurl) . ' HTTP/1.1' . "\r\n";
-				$out .= 'Host: www.simplemachines.org' . "\r\n";
-				$out .= 'Connection: Close' . "\r\n\r\n";
-				fwrite($fp, $out);
-
-				$return_data = '';
-				while (!feof($fp))
-					$return_data .= fgets($fp, 128);
-
-				fclose($fp);
-
-				// Get the unique site ID.
-				preg_match('~SITE-ID:\s(\w{10})~', $return_data, $ID);
-
-				if (!empty($ID[1]))
-					$smcFunc['db_insert']('replace',
-						$db_prefix . 'settings',
-						array('variable' => 'string', 'value' => 'string'),
-						array(
-							array('sm_stats_key', $ID[1]),
-							array('enable_sm_stats', 1),
-						),
-						array('variable')
-					);
-			}
-		}
-		else
-		{
-			$smcFunc['db_insert']('replace',
-				$db_prefix . 'settings',
-				array('variable' => 'string', 'value' => 'string'),
-				array('enable_sm_stats', 1),
-				array('variable')
-			);
-		}
-	}
-	// Don't remove stat collection unless we unchecked the box for real, not from the loop.
-	elseif (empty($_POST['stats']) && empty($upcontext['allow_sm_stats']))
-		$smcFunc['db_query']('', '
-			DELETE FROM {db_prefix}settings
-			WHERE variable = {string:enable_sm_stats}',
-			array(
-				'enable_sm_stats' => 'enable_sm_stats',
-				'db_error_skip' => true,
-			)
-		);
-
 	// Deleting old karma stuff?
 	$_SESSION['delete_karma'] = !empty($_POST['delete_karma']);
 
@@ -1914,7 +1853,7 @@ function DeleteUpgrade()
 		),
 		array(
 			time(), 3, $user_info['id'], $command_line ? '127.0.0.1' : $user_info['ip'], 'upgrade',
-			0, 0, 0, json_encode(array('version' => SMF_FULL_VERSION, 'member' => $user_info['id'])),
+			0, 0, 0, json_encode(array('version' => TEAGEND_FULL_VERSION, 'member' => $user_info['id'])),
 		),
 		array('id_action')
 	);
@@ -1959,7 +1898,7 @@ function cli_scheduled_fetchSMfiles()
 		$js_files[$row['id_file']] = array(
 			'filename' => $row['filename'],
 			'path' => $row['path'],
-			'parameters' => sprintf($row['parameters'], $language, urlencode($modSettings['time_format']), urlencode(SMF_FULL_VERSION)),
+			'parameters' => sprintf($row['parameters'], $language, urlencode($modSettings['time_format']), urlencode(TEAGEND_FULL_VERSION)),
 		);
 	}
 	$smcFunc['db_free_result']($request);
@@ -2755,8 +2694,6 @@ function cmdStep0()
 			$_POST['backup'] = 1;
 		elseif ($arg == '--rebuild-settings')
 			$_POST['migrateSettings'] = 1;
-		elseif ($arg == '--allow-stats')
-			$_POST['stats'] = 1;
 		elseif ($arg == '--template' && (file_exists($boarddir . '/template.php') || file_exists($boarddir . '/template.html') && !file_exists($modSettings['theme_dir'] . '/converted')))
 			$_GET['conv'] = 1;
 		elseif ($i != 0)
@@ -2769,7 +2706,6 @@ Usage: /path/to/php -f ' . basename(__FILE__) . ' -- [OPTION]...
 	--no-maintenance        Don\'t put the forum into maintenance mode.
 	--debug                 Output debugging information.
 	--backup                Create backups of tables with "backup_" prefix.
-	--allow-stats           Allow Simple Machines stat collection
 	--rebuild-settings      Rebuild the Settings.php file';
 			echo "\n";
 			exit;
@@ -4018,7 +3954,7 @@ function template_upgrade_below()
 	</div><!-- #footerfix -->
 	<div id="footer">
 		<ul>
-			<li class="copyright"><a href="https://www.simplemachines.org/" title="Simple Machines Forum" target="_blank" rel="noopener">SMF &copy; ' . SMF_SOFTWARE_YEAR . ', Simple Machines</a></li>
+			<li class="copyright"><a href="https://www.simplemachines.org/" title="Simple Machines Forum" target="_blank" rel="noopener">SMF &copy; ' . TEAGEND_SOFTWARE_YEAR . ', Simple Machines</a></li>
 		</ul>
 	</div>';
 
@@ -4307,13 +4243,6 @@ function template_upgrade_options()
 					</li>';
 
 	echo '
-					<li>
-						<input type="checkbox" name="stats" id="stats" value="1"', empty($modSettings['allow_sm_stats']) && empty($modSettings['enable_sm_stats']) ? '' : ' checked="checked"', '>
-						<label for="stat">
-							', $txt['upgrade_stats_collection'], '<br>
-							<span class="smalltext">', sprintf($txt['upgrade_stats_info'], 'https://www.simplemachines.org/about/stats.php'), '</a></span>
-						</label>
-					</li>
 					<li>
 						<input type="checkbox" name="migrateSettings" id="migrateSettings" value="1"', empty($upcontext['migrate_settings_recommended']) ? '' : ' checked="checked"', '>
 						<label for="migrateSettings">

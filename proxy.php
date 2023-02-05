@@ -19,17 +19,17 @@ if (!defined('SMF'))
 if (!defined('SMF_VERSION'))
 	define('SMF_VERSION', '2.1.3');
 
-if (!defined('SMF_FULL_VERSION'))
-	define('SMF_FULL_VERSION', 'SMF ' . SMF_VERSION);
+if (!defined('TEAGEND_FULL_VERSION'))
+	define('TEAGEND_FULL_VERSION', 'SMF ' . SMF_VERSION);
 
-if (!defined('SMF_SOFTWARE_YEAR'))
-	define('SMF_SOFTWARE_YEAR', '2023');
+if (!defined('TEAGEND_SOFTWARE_YEAR'))
+	define('TEAGEND_SOFTWARE_YEAR', '2023');
 
 if (!defined('JQUERY_VERSION'))
 	define('JQUERY_VERSION', '3.6.0');
 
-if (!defined('SMF_USER_AGENT'))
-	define('SMF_USER_AGENT', 'Mozilla/5.0 (' . php_uname('s') . ' ' . php_uname('m') . ') AppleWebKit/605.1.15 (KHTML, like Gecko)  SMF/' . strtr(SMF_VERSION, ' ', '.'));
+if (!defined('TEAGEND_USER_AGENT'))
+	define('TEAGEND_USER_AGENT', 'Mozilla/5.0 (' . php_uname('s') . ' ' . php_uname('m') . ') AppleWebKit/605.1.15 (KHTML, like Gecko)  SMF/' . strtr(SMF_VERSION, ' ', '.'));
 
 /**
  * Class ProxyServer

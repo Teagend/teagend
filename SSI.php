@@ -17,10 +17,10 @@ if (defined('SMF'))
 
 define('SMF', 'SSI');
 define('SMF_VERSION', '2.1.3');
-define('SMF_FULL_VERSION', 'SMF ' . SMF_VERSION);
-define('SMF_SOFTWARE_YEAR', '2023');
+define('TEAGEND_FULL_VERSION', 'SMF ' . SMF_VERSION);
+define('TEAGEND_SOFTWARE_YEAR', '2023');
 define('JQUERY_VERSION', '3.6.0');
-define('SMF_USER_AGENT', 'Mozilla/5.0 (' . php_uname('s') . ' ' . php_uname('m') . ') AppleWebKit/605.1.15 (KHTML, like Gecko)  SMF/' . strtr(SMF_VERSION, ' ', '.'));
+define('TEAGEND_USER_AGENT', 'Mozilla/5.0 (' . php_uname('s') . ' ' . php_uname('m') . ') AppleWebKit/605.1.15 (KHTML, like Gecko)  SMF/' . strtr(SMF_VERSION, ' ', '.'));
 
 // Just being safe...  Do this before defining globals as otherwise it unsets the global.
 foreach (array('db_character_set', 'cachedir') as $variable)
@@ -287,9 +287,9 @@ function ssi_version($output_method = 'echo')
 function ssi_full_version($output_method = 'echo')
 {
 	if ($output_method == 'echo')
-		echo SMF_FULL_VERSION;
+		echo TEAGEND_FULL_VERSION;
 	else
-		return SMF_FULL_VERSION;
+		return TEAGEND_FULL_VERSION;
 }
 
 /**
@@ -301,9 +301,9 @@ function ssi_full_version($output_method = 'echo')
 function ssi_software_year($output_method = 'echo')
 {
 	if ($output_method == 'echo')
-		echo SMF_SOFTWARE_YEAR;
+		echo TEAGEND_SOFTWARE_YEAR;
 	else
-		return SMF_SOFTWARE_YEAR;
+		return TEAGEND_SOFTWARE_YEAR;
 }
 
 /**
@@ -317,9 +317,9 @@ function ssi_copyright($output_method = 'echo')
 	global $forum_copyright, $scripturl;
 
 	if ($output_method == 'echo')
-		printf($forum_copyright, SMF_FULL_VERSION, SMF_SOFTWARE_YEAR, $scripturl);
+		printf($forum_copyright, TEAGEND_FULL_VERSION, TEAGEND_SOFTWARE_YEAR, $scripturl);
 	else
-		return sprintf($forum_copyright, SMF_FULL_VERSION, SMF_SOFTWARE_YEAR, $scripturl);
+		return sprintf($forum_copyright, TEAGEND_FULL_VERSION, TEAGEND_SOFTWARE_YEAR, $scripturl);
 }
 
 /**

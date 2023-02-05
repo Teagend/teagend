@@ -14,13 +14,13 @@
 use Teagend\Schema\Schema;
 
 define('SMF_VERSION', '2.1.3');
-define('SMF_FULL_VERSION', 'SMF ' . SMF_VERSION);
-define('SMF_SOFTWARE_YEAR', '2023');
+define('TEAGEND_FULL_VERSION', 'SMF ' . SMF_VERSION);
+define('TEAGEND_SOFTWARE_YEAR', '2023');
 define('DB_SCRIPT_VERSION', '2-1');
-define('SMF_INSTALLING', 1);
+define('TEAGEND_INSTALLING', 1);
 
 define('JQUERY_VERSION', '3.6.0');
-define('SMF_USER_AGENT', 'Mozilla/5.0 (' . php_uname('s') . ' ' . php_uname('m') . ') AppleWebKit/605.1.15 (KHTML, like Gecko)  SMF/' . strtr(SMF_VERSION, ' ', '.'));
+define('TEAGEND_USER_AGENT', 'Mozilla/5.0 (' . php_uname('s') . ' ' . php_uname('m') . ') AppleWebKit/605.1.15 (KHTML, like Gecko)  SMF/' . strtr(SMF_VERSION, ' ', '.'));
 if (!defined('TIME_START'))
 	define('TIME_START', microtime(true));
 
@@ -95,7 +95,7 @@ $incontext['steps'] = array(
 );
 
 // Default title...
-$incontext['page_title'] = $txt['smf_installer'];
+$incontext['page_title'] = $txt['teagend_installer'];
 
 // What step are we on?
 $incontext['current_step'] = isset($_GET['step']) ? (int) $_GET['step'] : 0;
@@ -754,7 +754,7 @@ function DatabaseSettings()
 	}
 	else
 	{
-		$incontext['db']['prefix'] = 'smf_';
+		$incontext['db']['prefix'] = 'tea_';
 	}
 
 	// Are we submitting?
@@ -1242,54 +1242,6 @@ function DatabasePopulation()
 
 	// Make sure UTF will be used globally.
 	$newSettings[] = array('global_character_set', 'UTF-8');
-
-	// Are we allowing stat collection?
-	if (!empty($_POST['stats']) && substr($boardurl, 0, 16) != 'http://localhost' && empty($modSettings['allow_sm_stats']) && empty($modSettings['enable_sm_stats']))
-	{
-		$incontext['allow_sm_stats'] = true;
-
-		// Attempt to register the site etc.
-		$fp = @fsockopen('www.simplemachines.org', 443, $errno, $errstr);
-		if (!$fp)
-			$fp = @fsockopen('www.simplemachines.org', 80, $errno, $errstr);
-		if ($fp)
-		{
-			$out = 'GET /smf/stats/register_stats.php?site=' . base64_encode($boardurl) . ' HTTP/1.1' . "\r\n";
-			$out .= 'Host: www.simplemachines.org' . "\r\n";
-			$out .= 'Connection: Close' . "\r\n\r\n";
-			fwrite($fp, $out);
-
-			$return_data = '';
-			while (!feof($fp))
-				$return_data .= fgets($fp, 128);
-
-			fclose($fp);
-
-			// Get the unique site ID.
-			preg_match('~SITE-ID:\s(\w{10})~', $return_data, $ID);
-
-			if (!empty($ID[1]))
-				$smcFunc['db_insert']('replace',
-					$db_prefix . 'settings',
-					array('variable' => 'string', 'value' => 'string'),
-					array(
-						array('sm_stats_key', $ID[1]),
-						array('enable_sm_stats', 1),
-					),
-					array('variable')
-				);
-		}
-	}
-	// Don't remove stat collection unless we unchecked the box for real, not from the loop.
-	elseif (empty($_POST['stats']) && empty($incontext['allow_sm_stats']))
-		$smcFunc['db_query']('', '
-			DELETE FROM {db_prefix}settings
-			WHERE variable = {string:enable_sm_stats}',
-			array(
-				'enable_sm_stats' => 'enable_sm_stats',
-				'db_error_skip' => true,
-			)
-		);
 
 	// Are we enabling SSL?
 	if (!empty($_POST['force_ssl']))
@@ -1807,7 +1759,7 @@ function DeleteInstall()
 		// We've just installed!
 		$user_info['ip'] = $_SERVER['REMOTE_ADDR'];
 		$user_info['id'] = isset($incontext['member_id']) ? $incontext['member_id'] : 0;
-		logAction('install', array('version' => SMF_FULL_VERSION), 'admin');
+		logAction('install', array('version' => TEAGEND_FULL_VERSION), 'admin');
 	}
 
 	// Disable the legacy BBC by default for new installs
@@ -1914,7 +1866,7 @@ function template_install_above()
 <head>
 	<meta charset="', isset($txt['lang_character_set']) ? $txt['lang_character_set'] : 'UTF-8', '">
 	<meta name="robots" content="noindex">
-	<title>', $txt['smf_installer'], '</title>
+	<title>', $txt['teagend_installer'], '</title>
 	<link rel="stylesheet" href="Themes/default/css/index.css">
 	<link rel="stylesheet" href="Themes/default/css/install.css">
 	', $txt['lang_rtl'] == '1' ? '<link rel="stylesheet" href="Themes/default/css/rtl.css">' : '', '
@@ -1925,7 +1877,7 @@ function template_install_above()
 <body>
 	<div id="footerfix">
 	<div id="header">
-		<h1 class="forumtitle">', $txt['smf_installer'], '</h1>
+		<h1 class="forumtitle">', $txt['teagend_installer'], '</h1>
 		<img id="smflogo" src="Themes/default/images/smflogo.svg" alt="Simple Machines Forum" title="Simple Machines Forum">
 	</div>
 	<div id="wrapper">';
@@ -2018,7 +1970,7 @@ function template_install_below()
 	</div><!-- #footerfix -->
 	<div id="footer">
 		<ul>
-			<li class="copyright"><a href="https://www.simplemachines.org/" title="Simple Machines Forum" target="_blank" rel="noopener">' . SMF_FULL_VERSION . ' &copy; ' . SMF_SOFTWARE_YEAR . ', Simple Machines</a></li>
+			<li class="copyright"><a href="https://www.simplemachines.org/" title="Simple Machines Forum" target="_blank" rel="noopener">' . TEAGEND_FULL_VERSION . ' &copy; ' . TEAGEND_SOFTWARE_YEAR . ', Simple Machines</a></li>
 		</ul>
 	</div>
 </body>
@@ -2246,7 +2198,7 @@ function template_database_settings()
 				<label for="db_name_input">', $txt['db_settings_database'], ':</label>
 			</dt>
 			<dd>
-				<input type="text" name="db_name" id="db_name_input" value="', empty($incontext['db']['name']) ? 'smf' : $incontext['db']['name'], '" size="30">
+				<input type="text" name="db_name" id="db_name_input" value="', empty($incontext['db']['name']) ? 'teagend' : $incontext['db']['name'], '" size="30">
 				<div class="smalltext">
 					', $txt['db_settings_database_info'], '
 					<span id="db_name_info_warning">', $txt['db_settings_database_info_note'], '</span>
@@ -2314,12 +2266,6 @@ function template_forum_settings()
 				<input type="checkbox" name="dbsession" id="dbsession_check" checked>
 				<label for="dbsession_check">', $txt['install_settings_dbsession_title'], '</label>
 				<div class="smalltext">', $incontext['test_dbsession'] ? $txt['install_settings_dbsession_info1'] : $txt['install_settings_dbsession_info2'], '</div>
-			</dd>
-			<dt>', $txt['install_settings_stats'], ':</dt>
-			<dd>
-				<input type="checkbox" name="stats" id="stats_check" checked="checked">
-				<label for="stats_check">', $txt['install_settings_stats_title'], '</label>
-				<div class="smalltext">', $txt['install_settings_stats_info'], '</div>
 			</dd>
 			<dt>', $txt['force_ssl'], ':</dt>
 			<dd>

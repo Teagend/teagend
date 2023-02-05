@@ -37,7 +37,7 @@ var atwhoConfig = {
 				url: smf_scripturl + '?action=suggest;' + smf_session_var + '=' + smf_session_id + ';xml',
 				method: 'GET',
 				headers: {
-					"X-SMF-AJAX": 1
+					"X-Tea-AJAX": 1
 				},
 				xhrFields: {
 					withCredentials: typeof allow_xhjr_credentials !== "undefined" ? allow_xhjr_credentials : false

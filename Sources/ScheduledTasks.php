@@ -28,7 +28,7 @@ function AutoTask()
 	corsPolicyHeader();
 
 	// Requests from a CORS response may send a options to find if the requst is valid.  Simply bail out here, the cors header have been sent already.
-	if (isset($_SERVER['HTTP_X_SMF_AJAX']) && isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'OPTIONS')
+	if (isset($_SERVER['HTTP_X_TEA_AJAX']) && isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'OPTIONS')
 	{
 		send_http_status(204);
 		die;
@@ -1072,7 +1072,7 @@ function scheduled_fetchSMfiles()
 		$js_files[$row['id_file']] = array(
 			'filename' => $row['filename'],
 			'path' => $row['path'],
-			'parameters' => sprintf($row['parameters'], $language, urlencode($modSettings['time_format']), urlencode(SMF_FULL_VERSION)),
+			'parameters' => sprintf($row['parameters'], $language, urlencode($modSettings['time_format']), urlencode(TEAGEND_FULL_VERSION)),
 		);
 	}
 
