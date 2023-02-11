@@ -1624,6 +1624,17 @@ function AdminAccount()
 				['id_character'],
 				1
 			);
+
+			// And update the current character.
+			$smcFunc['db_query']('', '
+				UPDATE {db_prefix}members
+				SET current_character = {int:current_character}
+				WHERE id_member = {int:id_member}',
+				[
+					'current_character' => $incontext['character_id'],
+					'id_member' => $incontext['member_id'],
+				]
+			);
 		}
 
 		// If we're here we're good.
