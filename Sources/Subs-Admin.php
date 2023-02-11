@@ -73,11 +73,11 @@ function getServerVersions($checkFor)
 		else
 		{
 			$versions['db_engine'] = array(
-				'title' => sprintf($txt['support_versions_db_engine'], $smcFunc['db_title']),
+				'title' => $txt['support_versions_db_engine'],
 				'version' => $smcFunc['db_get_vendor'](),
 			);
 			$versions['db_server'] = array(
-				'title' => sprintf($txt['support_versions_db'], $smcFunc['db_title']),
+				'title' => $txt['support_versions_db'],
 				'version' => $smcFunc['db_get_version'](),
 			);
 		}
