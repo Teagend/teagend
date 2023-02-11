@@ -140,6 +140,7 @@ class Uncategorised
 					'id_ban_group' => Column::smallint(),
 					'ip_low' => Column::varbinary(16)->nullable(),
 					'ip_high' => Column::varbinary(16)->nullable(),
+					'hostname' => Column::varchar(255),
 					'email_address' => Column::varchar(255),
 					'id_member' => Column::mediumint(),
 					'hits' => Column::mediumint(),
