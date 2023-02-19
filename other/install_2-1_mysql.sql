@@ -942,6 +942,10 @@ VALUES ('smfVersion', '{$smf_version}'),
 	('attachments_21_done', '1'),
 	('displayFields', '[{"col_name":"cust_icq","title":"ICQ","type":"text","order":"1","bbc":"0","placement":"1","enclose":"<a class=\\"icq\\" href=\\"\\/\\/www.icq.com\\/people\\/{INPUT}\\" target=\\"_blank\\" title=\\"ICQ - {INPUT}\\"><img src=\\"{DEFAULT_IMAGES_URL}\\/icq.png\\" alt=\\"ICQ - {INPUT}\\"><\\/a>","mlist":"0"},{"col_name":"cust_skype","title":"Skype","type":"text","order":"2","bbc":"0","placement":"1","enclose":"<a href=\\"skype:{INPUT}?call\\"><img src=\\"{DEFAULT_IMAGES_URL}\\/skype.png\\" alt=\\"{INPUT}\\" title=\\"{INPUT}\\" \\/><\\/a> ","mlist":"0"},{"col_name":"cust_loca","title":"Location","type":"text","order":"4","bbc":"0","placement":"0","enclose":"","mlist":"0"},{"col_name":"cust_gender","title":"Gender","type":"radio","order":"5","bbc":"0","placement":"1","enclose":"<span class=\\" main_icons gender_{KEY}\\" title=\\"{INPUT}\\"><\\/span>","mlist":"0","options":["None","Male","Female"]}]'),
 	('minimize_files', '1'),
+	('characters_ic_may_post', 'ic'),
+	('characters_ooc_may_post', 'ooc'),
+	('characters_ic_require_sheet', '1'),
+	('characters_online_view', 'ic'),
 	('securityDisable_moderate', '1');
 
 # --------------------------------------------------------

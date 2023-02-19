@@ -653,4 +653,10 @@ $helptxt['requireAgreement'] = 'This setting is recommended to be enabled in ord
 $helptxt['requirePolicyAgreement'] = 'This setting is recommended to be enabled in order to comply with the rules of the <a href="https://ec.europa.eu/info/law/law-topic/data-protection/eu-data-protection-rules_en" target="_blank" rel="noopener" class="bbc_link">GDPR</a>.';
 $helptxt['gravatar'] = 'Gravatar is Globally Recognized Avatars. Register an account at <a href="https://www.gravatar.com" target="_blank" rel="noopener">https://www.gravatar.com</a> to select an avatar image. This avatar is then available at every site that supports gravatars. If you don\'t have a gravatar account, a default image will be used.';
 
+// ManageCharacters.
+$helptxt['characters_ic_may_post'] = 'On a forum where you have a strong divide between "in character" posts and "out of character" posts, you might want to ensure that characters can only post in the in-character boards and never outside. Tick this box to enforce this.';
+$helptxt['characters_ooc_may_post'] = 'On a forum where there is a strong divide between "in character" posts and "out of character" posts, you may wish to enforce that accounts (as opposed to characters) can only post in the out-of-character areas. Tick this box to enforce this.';
+$helptxt['characters_ic_require_sheet'] = 'By default, the permissions setup does not prevent a just-made character from posting. Ticking this box ensures that for in-character posts to happen, the character must have an approved character sheet.';
+$helptxt['characters_online_view'] = 'This option lets you pick how you show online status. Let\'s say for example that you have a member called Alice, who has two characters, Bob and Mary. The first option has it so that if Alice is "currently posting as Bob", Bob will appear online, and if Alice switches to posting as Mary, Mary will appear online. The second option, for "the OOC name" will just list Alice as online the whole time, regardless of who she is "currently posting as".';
+
 ?>

@@ -361,6 +361,18 @@ function AdminMain()
 				),
 			),
 		),
+		'characters' => array(
+			'title' => $txt['admin_manage_characters'],
+			'permission' => array('admin_forum'),
+			'areas' => array(
+				'charactersettings' => array(
+					'label' => $txt['admin_character_settings'],
+					'file' => 'ManageCharacters.php',
+					'function' => 'CharacterSettings',
+					'icon' => 'quick_edit_button',
+				),
+			),
+		),
 		'maintenance' => array(
 			'title' => $txt['admin_maintenance'],
 			'permission' => array('admin_forum'),
