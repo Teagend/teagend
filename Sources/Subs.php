@@ -266,7 +266,7 @@ function updateStats($type, $parameter1 = null, $parameter2 = null)
  * @param mixed $members An array of member IDs, the ID of a single member, or null to update this for all members
  * @param array $data The info to update for the members
  */
-function updateMemberData($members, $data)
+function updateMemberData(int|array|null $members, array $data)
 {
 	global $modSettings, $user_info, $smcFunc, $sourcedir, $cache_enable;
 
@@ -437,6 +437,58 @@ function updateMemberData($members, $data)
 			cache_put_data('user_settings-' . $member, null, 60);
 		}
 	}
+}
+
+/**
+ * Updates the columns in the characters table.
+ * Assumes the data has been htmlspecialchar'd.
+ * this function should be used whenever member data needs to be
+ * updated in place of an UPDATE query.
+ *
+ * @param int $character_id The character being updated.
+ * @param array $data The data being updated.
+ */
+function updateCharacterData(int $character_id, array $data)
+{
+	global $smcFunc;
+
+	$setString = '';
+	$condition = 'id_character = {int:id_character}';
+	$parameters = ['id_character' => $character_id];
+	foreach ($data as $var => $val)
+	{
+		$type = 'string';
+		if (in_array($var, ['default_avatar', 'default_signature', 'id_theme', 'posts', 'main_char_group', 'last_active', 'char_sheet', 'retired']))
+			$type = 'int';
+
+		// Doing an increment?
+		if ($var == 'posts' && ($val === '+' || $val === '-'))
+		{
+			$val = $var . ' ' . $val . ' 1';
+			$type = 'raw';
+		}
+
+		// Ensure posts don't underflow.
+		if (in_array($var, ['posts']))
+		{
+			if (preg_match('~^' . $var . ' (\+ |- |\+ -)([\d]+)~', $val, $match))
+			{
+				if ($match[1] != '+ ')
+					$val = 'CASE WHEN ' . $var . ' <= ' . abs($match[2]) . ' THEN 0 ELSE ' . $val . ' END';
+				$type = 'raw';
+			}
+		}
+
+		$setString .= ' ' . $var . ' = {' . $type . ':p_' . $var . '},';
+		$parameters['p_' . $var] = $val;
+	}
+
+	$smcFunc['db_query']('', '
+		UPDATE {db_prefix}characters
+		SET' . substr($setString, 0, -1) . '
+		WHERE ' . $condition,
+		$parameters
+	);
 }
 
 /**

@@ -1455,8 +1455,8 @@ function loadPermissions()
  */
 function loadMemberData($users, $is_name = false, $set = 'normal')
 {
-	global $user_profile, $modSettings, $board_info, $smcFunc, $context;
-	global $user_info, $cache_enable, $txt;
+	global $user_profile, $avatarData, $modSettings, $board_info, $smcFunc, $context;
+	global $user_info, $cache_enable, $txt, $scripturl;
 
 	// Can't just look for no users :P.
 	if (empty($users))
@@ -1486,7 +1486,7 @@ function loadMemberData($users, $is_name = false, $set = 'normal')
 
 	// Used by default
 	$select_columns = '
-			COALESCE(lo.log_time, 0) AS is_online, COALESCE(a.id_attach, 0) AS id_attach, a.filename, a.attachment_type, a.width "attachment_width", a.height "attachment_height",
+			COALESCE(lo.log_time, 0) AS is_online,
 			mem.signature, mem.personal_text, mem.avatar, mem.id_member, mem.member_name,
 			mem.real_name, mem.email_address, mem.date_registered, mem.website_title, mem.website_url,
 			mem.birthdate, mem.member_ip, mem.member_ip2, mem.posts, mem.last_login, mem.id_post_group, mem.lngfile, mem.id_group, mem.time_offset, mem.timezone, mem.show_online,
@@ -1496,7 +1496,7 @@ function loadMemberData($users, $is_name = false, $set = 'normal')
 			CASE WHEN mem.id_group = 0 OR mg.icons = {string:blank_string} THEN pg.icons ELSE mg.icons END AS icons';
 	$select_tables = '
 			LEFT JOIN {db_prefix}log_online AS lo ON (lo.id_member = mem.id_member)
-			LEFT JOIN {db_prefix}attachments AS a ON (a.id_member = mem.id_member)
+			LEFT JOIN {db_prefix}characters AS chars ON (mem.current_character = chars.id_character)
 			LEFT JOIN {db_prefix}membergroups AS pg ON (pg.id_group = mem.id_post_group)
 			LEFT JOIN {db_prefix}membergroups AS mg ON (mg.id_group = mem.id_group)';
 
@@ -1504,12 +1504,13 @@ function loadMemberData($users, $is_name = false, $set = 'normal')
 	switch ($set)
 	{
 		case 'normal':
-			$select_columns .= ', mem.buddy_list,  mem.additional_groups';
+			$select_columns .= ', mem.buddy_list,  mem.additional_groups, lo.id_character AS online_character, chars.is_main';
 			break;
 		case 'profile':
 			$select_columns .= ', mem.additional_groups, mem.id_theme, mem.pm_ignore_list, mem.pm_receive_from,
 			mem.time_format, mem.timezone, mem.secret_question, mem.smiley_set, mem.tfa_secret,
-			mem.total_time_logged_in, lo.url, mem.ignore_boards, mem.password_salt, mem.pm_prefs, mem.buddy_list, mem.alerts';
+			mem.total_time_logged_in, lo.url, mem.ignore_boards, mem.password_salt, mem.pm_prefs, mem.buddy_list, mem.alerts,
+			lo.id_character AS online_character, chars.is_main';
 			break;
 		case 'minimal':
 			$select_columns = '
@@ -1542,13 +1543,6 @@ function loadMemberData($users, $is_name = false, $set = 'normal')
 		$new_loaded_ids = array();
 		while ($row = $smcFunc['db_fetch_assoc']($request))
 		{
-			// If the image proxy is enabled, we still want the original URL when they're editing the profile...
-			$row['avatar_original'] = !empty($row['avatar']) ? $row['avatar'] : '';
-
-			// Take care of proxying avatar if required, do this here for maximum reach
-			if (!empty($row['avatar']))
-				$row['avatar'] = get_proxied_url($row['avatar']);
-
 			// Keep track of the member's normal member group
 			$row['primary_group'] = !empty($row['member_group']) ? $row['member_group'] : '';
 
@@ -1567,6 +1561,72 @@ function loadMemberData($users, $is_name = false, $set = 'normal')
 
 	if (!empty($new_loaded_ids) && $set !== 'minimal')
 	{
+		$characters_loaded = [];
+		$request = $smcFunc['db_query']('', '
+			SELECT chars.id_member, chars.id_character, chars.character_name,
+				chars.default_avatar, chars.avatar_rotation,
+				chars.posts, chars.date_created, chars.last_active, chars.is_main,
+				chars.main_char_group, chars.char_groups, chars.char_sheet, chars.char_topic, chars.retired
+			FROM {db_prefix}characters AS chars
+			WHERE chars.id_member IN ({array_int:loaded_ids})
+			ORDER BY NULL',
+			[
+				'loaded_ids' => $new_loaded_ids,
+			]
+		);
+		while ($row = $smcFunc['db_fetch_assoc']($request))
+		{
+			$user_profile[$row['id_member']]['characters'][$row['id_character']] = [
+				'id_character' => $row['id_character'],
+				'character_name' => $row['character_name'],
+				'character_url' => $scripturl . '?action=profile;u=' . $row['id_member'] . ';area=characters;char=' . $row['id_character'],
+				'posts' => $row['posts'],
+				'date_created' => $row['date_created'],
+				'last_active' => $row['last_active'],
+				'is_main' => $row['is_main'],
+				'main_char_group' => $row['main_char_group'],
+				'char_groups' => $row['char_groups'],
+				'char_sheet' => $row['char_sheet'],
+				'retired' => $row['retired'],
+			];
+			if ($row['is_main'])
+				$user_profile[$row['id_member']]['main_char'] = $row['id_character'];
+
+			if (($modSettings['characters_online_view'] ?? 'ooc') == 'ooc')
+				$user_profile[$row['id_member']]['characters'][$row['id_character']]['is_online'] = !empty($user_profile[$row['id_member']]['is_online']);
+			else
+				$user_profile[$row['id_member']]['characters'][$row['id_character']]['is_online'] = !empty($user_profile[$row['id_member']]['online_character']) && $user_profile[$row['id_member']]['online_character'] == $row['id_character'];
+
+			$image = '';
+
+			$characters_loaded[$row['id_character']] = $row['id_member'];
+		}
+		$smcFunc['db_free_result']($request);
+
+		foreach ($user_profile as $id_member => $member)
+		{
+			if (!isset($member['characters']))
+				$user_profile[$id_member]['characters'] = [];
+			else
+				uasort($user_profile[$id_member]['characters'], function ($a, $b) {
+					return $a['is_main'] ? -1 : ($a['character_name'] > $b['character_name'] ? 1 : ($a['character_name'] < $a['character_name'] ? -1 : 0));
+				});
+		}
+
+		$request = $smcFunc['db_query']('', '
+			SELECT id_field, id_character, value
+			FROM {db_prefix}custom_field_values
+			WHERE id_character IN ({array_int:character_ids})',
+			[
+				'character_ids' => array_keys($characters_loaded),
+			]
+		);
+		while ($row = $smcFunc['db_fetch_assoc']($request))
+		{
+			$user_profile[$characters_loaded[$row['id_character']]]['characters'][$row['id_character']]['cfraw'][$row['id_field']] = $row['value'];
+		}
+		$smcFunc['db_free_result']($request);
+
 		$request = $smcFunc['db_query']('', '
 			SELECT id_member, variable, value
 			FROM {db_prefix}themes
@@ -1578,6 +1638,19 @@ function loadMemberData($users, $is_name = false, $set = 'normal')
 		while ($row = $smcFunc['db_fetch_assoc']($request))
 			$user_profile[$row['id_member']]['options'][$row['variable']] = $row['value'];
 		$smcFunc['db_free_result']($request);
+
+		if (!empty($characters_loaded))
+		{
+			loadAvatars(array_keys($characters_loaded));
+
+			foreach ($characters_loaded as $character_id => $member_id)
+			{
+				if (isset($avatarData[$character_id]))
+				{
+					$user_profile[$member_id]['characters'][$character_id]['avatar'] = $avatarData[$character_id]['default'];
+				}
+			}
+		}
 	}
 
 	$additional_mods = array();
@@ -1797,14 +1870,10 @@ function loadMemberContext($user, $display_custom_fields = false)
 	// If the set isn't minimal then load their avatar as well.
 	if ($context['loadMemberContext_set'] != 'minimal')
 	{
-		$avatarData = set_avatar_data(array(
-			'filename' => $profile['filename'],
-			'avatar' => $profile['avatar'],
-			'email' => $profile['email_address'],
-		));
-
-		if (!empty($avatarData['image']))
-			$memberContext[$user]['avatar'] = $avatarData;
+		foreach ($profile['characters'] as $character_id => $character)
+		{
+			$memberContext[$user]['avatars'][$character_id] = $character['avatar'];
+		}
 	}
 
 	// Are we also loading the members custom fields into context?
