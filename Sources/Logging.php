@@ -145,6 +145,7 @@ function writeLog($force = false)
 
 		$user_settings['total_time_logged_in'] += time() - $_SESSION['timeOnlineUpdated'];
 		updateMemberData($user_info['id'], array('last_login' => time(), 'member_ip' => $user_info['ip'], 'member_ip2' => $_SERVER['BAN_CHECK_IP'], 'total_time_logged_in' => $user_settings['total_time_logged_in']));
+		updateCharacterData($user_info['id_character'], array('last_active' => time()));
 
 		if (!empty($cache_enable) && $cache_enable >= 2)
 			cache_put_data('user_settings-' . $user_info['id'], $user_settings, 60);
