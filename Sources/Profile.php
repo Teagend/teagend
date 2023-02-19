@@ -422,7 +422,7 @@ function ModifyProfile($post_errors = array())
 					'icon' => 'packages',
 					// 'token' => 'profile-ex%u', // This is not checked here. We do it in the function itself - but if it was checked, this is what it'd be.
 					'permission' => array(
-						'own' => array('profile_view_own'),
+						'own' => array('is_not_guest'),
 						'any' => array('moderate_forum'),
 					),
 				),
@@ -434,7 +434,7 @@ function ModifyProfile($post_errors = array())
 					'hidden' => true,
 					'select' => 'getprofiledata',
 					'permission' => array(
-						'own' => array('profile_view_own'),
+						'own' => array('is_not_guest'),
 						'any' => array('moderate_forum'),
 					),
 				),
@@ -446,7 +446,7 @@ function ModifyProfile($post_errors = array())
 					'hidden' => true,
 					'select' => 'getprofiledata',
 					'permission' => array(
-						'own' => array('profile_view_own'),
+						'own' => array('is_not_guest'),
 						'any' => array(),
 					),
 				),
