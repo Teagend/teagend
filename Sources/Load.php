@@ -1880,6 +1880,90 @@ function loadMemberContext($user, $display_custom_fields = false)
 }
 
 /**
+ * Retrieves a filesystem object for a given bucket, e.g. avatars/large
+ *
+ * It is not expected that you will call this function directly.
+ */
+function getFilesystem(string $bucket): Filesystem
+{
+	global $boardurl, $boarddir;
+	static $fs = null;
+
+	if ($fs === null)
+	{
+		$fs = array(
+			'adapters' => array(
+				'public' => new LocalFilesystemAdapter($boarddir . '/public_files'),
+				'private' => new LocalFilesystemAdapter($boarddir . '/private_files'),
+			),
+		);
+
+		$fs['fs']['avatars/large'] = new Filesystem($fs['adapters']['public'], ['public_url' => $boardurl . '/public_files/avatars/large']);
+		$fs['fs']['avatars/small'] = new Filesystem($fs['adapters']['public'], ['public_url' => $boardurl . '/public_files/avatars/small']);
+	}
+
+	if (isset($fs['fs'][$bucket]))
+		return $fs['fs'][$bucket];
+
+	throw new \Exception('Unknown filesystem bucket: ' . $bucket);
+}
+
+/**
+ * Writes a physical file to the filesystem, wherever that happens to be defined.
+ *
+ * @param string $filetype One of the defined filetypes, e.g. avatars/large
+ * @param string $filename The local filename to store the file as, e.g. 1_123.png
+ * @param string $content The content of the file to be written.
+ */
+function write_filesystem_file(string $filetype, array $file, string $content)
+{
+	switch ($filetype)
+	{
+		case 'avatars/large':
+		case 'avatars/small':
+			return getFilesystem($filetype)->write($filetype . '/' . $filename, $content);
+	}
+
+	throw new \Exception('Unkonwn filesystem bucket: ' . $filetype);
+}
+
+/**
+ * Read a physical file from the filesystem, wherever that happens to be defined.
+ *
+ * @param string $filetype One of the defined filetypes, e.g. avatars/large
+ * @param string $filename The local filename to read the file from, e.g. 1_123.png
+ */
+function read_filesystem_file(string $filetype, string $filename)
+{
+	switch ($filetype)
+	{
+		case 'avatars/large':
+		case 'avatars/small':
+			return getFilesystem($filetype)->read($filetype . '/' . $filename);
+	}
+
+	throw new \Exception('Unknown filesystem bucket: ' . $filetype);
+}
+
+/**
+ * Gets a URL for a given file, wherever that happens to be defined.
+ *
+ * @param string $filetype One of the defined filetypes, e.g. avatars/large
+ * @param string $filename The local filename to read the file from, e.g. 1_123.png
+ */
+function get_filesystem_url(string $filetype, string $filename)
+{
+	switch ($filetype)
+	{
+		case 'avatars/large':
+		case 'avatars/small':
+			return getFilesystem($filetype)->publicUrl($filename);
+	}
+
+	throw new \Exception('Unknown bucket: ' . $filetype);
+}
+
+/**
  * Loads the user's custom profile fields
  *
  * @param integer|array $users A single user ID or an array of user IDs
