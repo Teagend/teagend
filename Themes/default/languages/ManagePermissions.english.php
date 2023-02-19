@@ -188,6 +188,14 @@ $txt['permissionhelp_view_warning'] = 'Allows users to view their own warning st
 $txt['permissiongroup_profile_characters'] = 'Characters';
 $txt['permissionname_character_create'] = 'Create characters';
 $txt['permissionhelp_character_create'] = 'Allow the member to create new characters to roleplay with.';
+$txt['permissionname_character_move'] = 'Move characters';
+$txt['permissionhelp_character_move'] = 'Characters sometimes need to be moved between accounts, e.g. a transfer of ownership. This is the option for managing whether this is possible for an account to move their own characters, or to move anyone else\'s.';
+$txt['permissionname_character_move_own'] = 'Move own character';
+$txt['permissionname_character_move_any'] = 'Move any character';
+$txt['permissionname_character_delete'] = 'Delete characters';
+$txt['permissionhelp_character_delete'] = 'Whether characters can be permanently deleted. Characters may not be deleted if they have made one or more post, regardless of user permission.';
+$txt['permissionname_character_delete_own'] = 'Delete own character';
+$txt['permissionname_character_delete_any'] = 'Delete any character';
 
 $txt['permissionname_report_user'] = 'Report users\' profiles';
 $txt['permissionhelp_report_user'] = 'This permission will allow members to report other users\' profiles to the admins to alert them of spam or other inappropriate content in the profile.';
