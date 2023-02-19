@@ -94,6 +94,8 @@ class Uncategorised
 					'id_character' => Column::int(),
 					'avatar_slot' => Column::varchar(255),
 					'url' => Column::varchar(255),
+					'width' => Column::smallint(),
+					'height' => Column::smallint(),
 					'id_file' => Column::int(),
 				],
 				[
