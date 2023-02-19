@@ -778,7 +778,7 @@ class Uncategorised
 					'hidden' => Column::tinyint()->signed(),
 					'id_parent' => Column::smallint()->signed()->default(-2),
 					'is_character' => Column::tinyint(),
-					'tfa-required' => Column::tinyint(),
+					'tfa_required' => Column::tinyint(),
 				],
 				[
 					Index::primary(['id_group']),
