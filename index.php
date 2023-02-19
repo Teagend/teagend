@@ -106,13 +106,17 @@ loadDatabase();
  */
 spl_autoload_register(function ($class) use ($sourcedir)
 {
-	$classMap = array(
-		'ReCaptcha\\' => 'ReCaptcha/',
-		'SMF\\Cache\\' => 'Cache/',
-	);
+	static $classMap = null;
+	if ($classMap === null)
+	{
+		$classMap = array(
+			'ReCaptcha\\' => 'ReCaptcha/',
+			'SMF\\Cache\\' => 'Cache/',
+		);
 
-	// Do any third-party scripts want in on the fun?
-	call_integration_hook('integrate_autoload', array(&$classMap));
+		// Do any third-party scripts want in on the fun?
+		call_integration_hook('integrate_autoload', array(&$classMap));
+	}
 
 	foreach ($classMap as $prefix => $dirName)
 	{
