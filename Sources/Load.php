@@ -15,6 +15,8 @@
 
 use SMF\Cache\CacheApi;
 use SMF\Cache\CacheApiInterface;
+use League\Flysystem\Filesystem;
+use League\Flysystem\Local\LocalFilesystemAdapter;
 
 if (!defined('SMF'))
 	die('No direct access...');
