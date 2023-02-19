@@ -626,4 +626,31 @@ $txt['export_download_original'] = 'Download original';
 $txt['export_view_source_button'] = 'Toggle source view';
 $txt['export_open_in_browser'] = 'Please open this file in a web browser to see a human readable version.';
 
+$txt['switch_character'] = 'Switch';
+$txt['switch_to_character_name'] = 'Switch to %1$s';
+
+$txt['char_name'] = 'Character Name:';
+$txt['char_editing_error'] = 'This character could not be updated because:';
+$txt['char_error_character_must_have_name'] = 'Your character must have a name.';
+$txt['char_error_duplicate_character_name'] = 'Your character cannot have the same name as another character.';
+
+$txt['profile_activity'] = 'Activity';
+$txt['profile_administrative'] = 'Administrative';
+
+$txt['date_created'] = 'Date created';
+$txt['topics_started'] = 'Topics started';
+$txt['character_retired'] = '(Retired)';
+
+$txt['character_sheet_button'] = 'Sheet';
+$txt['character_settings_button'] = 'Settings';
+$txt['character_retire_button'] = 'Retire';
+$txt['character_unretire_button'] = 'Unretire';
+$txt['character_delete_button'] = 'Delete';
+$txt['character_move_button'] = 'Move';
+$txt['character_posts_button'] = 'Posts';
+$txt['character_topics_button'] = 'Topics';
+
+$txt['you_can_add_later'] = 'You will be able to change all your character\'s details once the character has been made.';
+$txt['are_you_sure_delete_char'] = 'Are you sure you want to delete this character?';
+
 ?>

@@ -816,6 +816,8 @@ $txt['visual_verification_sound'] = 'Listen to the letters';
 $txt['visual_verification_request_new'] = 'Request another image';
 
 // Sub menu labels
+$txt['characters'] = 'Characters';
+$txt['create_character'] = 'Create Character';
 $txt['summary'] = 'Summary';
 $txt['account'] = 'Account Settings';
 $txt['theme'] = 'Look and Layout';

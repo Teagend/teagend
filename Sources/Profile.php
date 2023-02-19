@@ -66,6 +66,31 @@ function ModifyProfile($post_errors = array())
 	// Is this the profile of the user himself or herself?
 	$context['user']['is_owner'] = $memID == $user_info['id'];
 
+	// Set up some convenience functionality for accounts vs characters.
+	$context['current_characters'] = [];
+	$context['all_characters'] = [];
+	$context['ooc'] = [];
+	$context['create_character'] = $context['user']['is_owner'] && allowedTo('character_create');
+
+	foreach ($cur_profile['characters'] as $id_character => $character)
+	{
+		if ($context['user']['is_owner'] && $user_info['id_character'] != $id_character)
+			$character['switch_url'] = $scripturl . '?action=profile;area=char_switch;u=' . $context['id_member'] . ';char=' . $id_character . ';' . $context['session_var'] . '=' . $context['session_id'];
+
+		if (!empty($character['is_main']))
+		{
+			$context['ooc'] = $character;
+			continue;
+		}
+
+		$context['all_characters'][$id_character] = $character;
+
+		if (!empty($character['retired']))
+			continue;
+
+		$context['current_characters'][$id_character] = $character;
+	}
+
 	// Group management isn't actually a permission. But we need it to be for this, so we need a phantom permission.
 	// And we care about what the current user can do, not what the user whose profile it is.
 	if ($user_info['mod_cache']['gq'] != '0=1')
@@ -131,6 +156,24 @@ function ModifyProfile($post_errors = array())
 						'own' => 'is_not_guest',
 						'any' => array(),
 					),
+					'select' => 'summary',
+				),
+				'char_switch' => array(
+					'function' => 'char_switch',
+					'permission' => array(
+						'own' => 'is_not_guest',
+						'any' => array(),
+					),
+					'enabled' => $context['user']['is_owner'],
+					'select' => 'summary',
+				),
+				'char_switch_redir' => array(
+					'function' => 'char_switch_redir',
+					'permission' => array(
+						'own' => 'is_not_guest',
+						'any' => array(),
+					),
+					'enabled' => $context['user']['is_owner'],
 					'select' => 'summary',
 				),
 				'alerts_popup' => array(
@@ -224,6 +267,22 @@ function ModifyProfile($post_errors = array())
 					'permission' => array(
 						'own' => array('view_warning_own', 'view_warning_any', 'issue_warning', 'moderate_forum'),
 						'any' => array('view_warning_any', 'issue_warning', 'moderate_forum'),
+					),
+				),
+			),
+		),
+		'characters' => array(
+			'title' => $txt['characters'],
+			'areas' => array(
+				'character_create' => array(
+					'label' => $txt['create_character'],
+					'file' => 'Profile-Chars.php',
+					'icon' => 'plus',
+					'function' => 'character_create',
+					'enabled' => $context['user']['is_owner'],
+					'permission' => array(
+						'own' => array('character_create'),
+						'any' => array(),
 					),
 				),
 			),
@@ -490,12 +549,35 @@ function ModifyProfile($post_errors = array())
 		),
 	);
 
+	if (!empty($context['all_characters']))
+	{
+		$profile_areas['characters']['areas']['characters'] = array(
+			'label' => '',
+			'select' => 'characters',
+			'file' => 'Profile-Chars.php',
+			'function' => 'character_profile',
+			'permission' => array(
+				'own' => array('is_not_guest'),
+				'any' => array('profile_view'),
+			),
+		);
+		foreach ($context['all_characters'] as $character_id => $character)
+		{
+			$profile_areas['characters']['areas']['character_' . $character_id] = array(
+				'label' => $character['character_name'],
+				'file' => 'Profile_Chars.php',
+				'icon' => 'members',
+				'custom_url' => $scripturl . '?action=profile;area=characters;char=' . $character_id,
+				'permission' => array(
+					'own' => array('is_not_guest'),
+					'any' => array('profile_view'),
+				),
+			);
+		}
+	}
+
 	// Let them modify profile areas easily.
 	call_integration_hook('integrate_profile_areas', array(&$profile_areas));
-
-	// Deprecated since 2.1.4 and will be removed in 3.0.0. Kept for compatibility with early versions of 2.1.
-	// @todo add runtime warnings.
-	call_integration_hook('integrate_pre_profile_areas', array(&$profile_areas));
 
 	// Do some cleaning ready for the menu function.
 	$context['password_areas'] = array();
@@ -822,6 +904,93 @@ function ModifyProfile($post_errors = array())
 		$context['page_title'] = $txt['profile'] . (isset($txt[$current_area]) ? ' - ' . $txt[$current_area] : '');
 }
 
+function char_switch($memID)
+{
+	try
+	{
+		checkSession('get');
+		$char = isset($_GET['char']) ? (int) $_GET['char'] : 0;
+
+		perform_character_switch((int) $memID, $char);
+
+		if (isset($_GET['profile']))
+			redirectexit('action=profile;u=' . $memID . ';area=characters;char=' . $char);
+	}
+	catch (\Exception $e)
+	{
+		fatal_error($e->getMessage(), false);
+	}
+
+	die;
+}
+
+function perform_character_switch(int $memID, int $char): bool
+{
+	global $smcFunc, $modSettings, $context;
+
+	if (empty($char))
+		throw new \Exception('Cannot change to an empty character.');
+
+	// Let's check the user actually owns this character
+	$result = $smcFunc['db_query']('', '
+		SELECT id_character, id_member, retired
+		FROM {db_prefix}characters
+		WHERE id_character = {int:id_character}
+			AND id_member = {int:id_member}
+			AND retired = 0',
+		array(
+			'id_character' => $char,
+			'id_member' => $memID,
+		)
+	);
+	$found = $smcFunc['db_num_rows']($result) > 0;
+	$smcFunc['db_free_result']($result);
+
+	if (!$found)
+		throw new \Exception('Cannot switch to a character that belongs to a different account.');
+
+	// So it's valid. Update the members table first of all.
+	$smcFunc['db_query']('', '
+		UPDATE {db_prefix}members
+		SET current_character = {int:id_character}
+		WHERE id_member = {int:id_member}',
+		array(
+			'id_character' => $char,
+			'id_member' => $memID,
+		)
+	);
+	// Now the online log too.
+	$smcFunc['db_query']('', '
+		UPDATE {db_prefix}log_online
+		SET id_character = {int:id_character}
+		WHERE id_member = {int:id_member}',
+		array(
+			'id_character' => $char,
+			'id_member' => $memID,
+		)
+	);
+	// And last active
+	$smcFunc['db_query']('', '
+		UPDATE {db_prefix}characters
+		SET last_active = {int:last_active}
+		WHERE id_character = {int:character}',
+		array(
+			'last_active' => time(),
+			'character' => $char,
+		)
+	);
+
+	// If caching would have cached the user's record, nuke it.
+	if (!empty($modSettings['cache_enable']) && $modSettings['cache_enable'] >= 2)
+		cache_put_data('user_settings-' . $id_member, null, 60);
+
+	// Whatever they had in session for theme, disregard it.
+	if ($memID == $context['user']['id'])
+		unset ($_SESSION['id_theme'], $_SESSION['current_avatar']);
+
+	return true;
+}
+
 /**
  * Set up the requirements for the profile popup - the area that is shown as the popup menu for the current user.
  *
@@ -829,7 +998,7 @@ function ModifyProfile($post_errors = array())
  */
 function profile_popup($memID)
 {
-	global $context, $scripturl, $txt, $db_show_debug;
+	global $context, $scripturl, $cur_profile, $txt, $db_show_debug, $user_info;
 
 	// We do not want to output debug information here.
 	$db_show_debug = false;

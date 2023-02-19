@@ -48,18 +48,24 @@ function template_profile_below()
  */
 function template_profile_popup()
 {
-	global $context, $scripturl;
+	global $context, $scripturl, $txt;
 
 	// Unlike almost every other template, this is designed to be included into the HTML directly via $().load()
-
 	echo '
 		<div class="profile_user_avatar floatleft">
-			<a href="', $scripturl, '?action=profile;u=', $context['user']['id'], '">', $context['member']['avatar']['image'], '</a>
+			<a href="', $scripturl, '?action=profile;u=', $context['user']['id'], '">', $context['ooc']['avatar']['large_img'], '</a>
 		</div>
 		<div class="profile_user_info floatleft">
-			<span class="profile_username"><a href="', $scripturl, '?action=profile;u=', $context['user']['id'], '">', $context['user']['name'], '</a></span>
-			<span class="profile_group">', $context['member']['group'], '</span>
-		</div>
+			<span class="profile_username"><a href="', $scripturl, '?action=profile;u=', $context['user']['id'], '">', $context['ooc']['character_name'], '</a></span>
+		</div>';
+	if (!empty($context['ooc']['switch_url']))
+	{
+		echo '
+		<div class="switch_user">
+			<span data-href="', $context['ooc']['switch_url'], '" title="', sprintf($txt['switch_to_character_name'], $context['ooc']['character_name']), '">', $txt['switch_character'], '</span>
+		</div>';
+	}
+	echo '
 		<div class="profile_user_links">
 			<ol>';
 
@@ -77,6 +83,45 @@ function template_profile_popup()
 	echo '
 			</ol>
 		</div><!-- .profile_user_links -->';
+
+	if (!empty($context['current_characters']) || $context['create_character'])
+	{
+		echo '
+		<div class="character_list">';
+			if ($context['create_character'])
+				echo '
+			<div class="create_character">
+				<a href="#">', $txt['create_character'], '</a>
+			</div>';
+
+			foreach ($context['current_characters'] as $character)
+			{
+				echo '
+				<div class="character">
+					', $character['avatar']['small_img'], '
+					<a href="', $character['character_url'], '">', $character['character_name'], '</a>';
+
+				if (!empty($character['switch_url']))
+					echo '
+					<span data-href="', $character['switch_url'], '" title="', sprintf($txt['switch_to_character_name'], $character['character_name']), '">', $txt['switch_character'], '</span>';
+
+				echo '
+				</div>';
+			}
+		echo '
+		</div>';
+	}
+
+	echo '
+	<script>
+	$("#profile_menu span[data-href]").on("click", function() {
+		$.ajax({
+			url: $(this).data("href")
+		}).done(function(data) {
+			location.reload();
+		});
+	});
+	</script>';
 }
 
 /**
@@ -201,7 +246,7 @@ function template_summary()
 					<span class="position">', (!empty($context['member']['group']) ? $context['member']['group'] : $context['member']['post_group']), '</span>
 				</h4>
 			</div>
-			', $context['member']['avatar']['image'];
+			', $context['ooc']['avatar']['large_img'];
 
 	// Are there any custom profile fields for below the avatar?
 	if (!empty($context['print_custom_fields']['below_avatar']))
@@ -256,20 +301,6 @@ function template_summary()
 	echo '
 			</span>';
 
-	if (!$context['user']['is_owner'] && $context['can_send_pm'])
-		echo '
-			<a href="', $scripturl, '?action=pm;sa=send;u=', $context['id_member'], '" class="infolinks">', $txt['profile_sendpm_short'], '</a>';
-
-	echo '
-			<a href="', $scripturl, '?action=profile;area=showposts;u=', $context['id_member'], '" class="infolinks">', $txt['showPosts'], '</a>';
-
-	if ($context['user']['is_owner'] && !empty($modSettings['drafts_post_enabled']))
-		echo '
-			<a href="', $scripturl, '?action=profile;area=showdrafts;u=', $context['id_member'], '" class="infolinks">', $txt['drafts_show'], '</a>';
-
-	echo '
-			<a href="', $scripturl, '?action=profile;area=statistics;u=', $context['id_member'], '" class="infolinks">', $txt['statPanel'], '</a>';
-
 	// Are there any custom profile fields for bottom?
 	if (!empty($context['print_custom_fields']['bottom_poster']))
 	{
@@ -291,22 +322,8 @@ function template_summary()
 		</div><!-- #basicinfo -->
 
 		<div id="detailedinfo">
+			<h5>', $txt['profile_activity'], '</h5>
 			<dl class="settings">';
-
-	if ($context['user']['is_owner'] || $context['user']['is_admin'])
-		echo '
-				<dt>', $txt['username'], ': </dt>
-				<dd>', $context['member']['username'], '</dd>';
-
-	if (!isset($context['disabled_fields']['posts']))
-		echo '
-				<dt>', $txt['profile_posts'], ': </dt>
-				<dd>', $context['member']['posts'], ' (', $context['member']['posts_per_day'], ' ', $txt['posts_per_day'], ')</dd>';
-
-	if ($context['member']['show_email'])
-		echo '
-				<dt>', $txt['email'], ': </dt>
-				<dd><a href="mailto:', $context['member']['email'], '">', $context['member']['email'], '</a></dd>';
 
 	if (!empty($modSettings['titlesEnable']) && !empty($context['member']['title']))
 		echo '
@@ -318,9 +335,32 @@ function template_summary()
 				<dt>', $txt['personal_text'], ': </dt>
 				<dd>', $context['member']['blurb'], '</dd>';
 
+	if (!isset($context['disabled_fields']['posts']))
+		echo '
+				<dt>', $txt['profile_posts'], ': </dt>
+				<dd>', $context['member']['posts'], ' (', $context['member']['posts_per_day'], ' ', $txt['posts_per_day'], ')</dd>';
+
+	echo '
+				<dt>', $txt['date_registered'], ': </dt>
+				<dd>', $context['member']['registered'], '</dd>';
+
+	echo '
+				<dt>', $txt['local_time'], ':</dt>
+				<dd>', $context['member']['local_time'], '</dd>';
+
+	if ($context['member']['show_last_login'])
+		echo '
+				<dt>', $txt['lastLoggedIn'], ': </dt>
+				<dd>', $context['member']['last_login'], (!empty($context['member']['is_hidden']) ? ' (' . $txt['hidden'] . ')' : ''), '</dd>';
+
 	echo '
 				<dt>', $txt['age'], ':</dt>
 				<dd>', $context['member']['age'] . ($context['member']['today_is_birthday'] ? ' &nbsp; <img src="' . $settings['images_url'] . '/cake.png" alt="">' : ''), '</dd>';
+
+	if (!empty($modSettings['userLanguage']) && !empty($context['member']['language']))
+		echo '
+				<dt>', $txt['language'], ':</dt>
+				<dd>', $context['member']['language'], '</dd>';
 
 	echo '
 			</dl>';
@@ -349,90 +389,82 @@ function template_summary()
 		}
 	}
 
-	echo '
-			<dl class="settings noborder">';
+	$administrative = false;
+	$administrative |= ($context['can_view_warning'] && $context['member']['warning']);
+	$administrative |= !empty($context['activate_message']);
+	$administrative |= !empty($context['member']['bans']);
+	$administrative |= $context['can_see_ip'];
 
-	// Can they view/issue a warning?
-	if ($context['can_view_warning'] && $context['member']['warning'])
+	if ($administrative)
 	{
 		echo '
+			<h5>', $txt['profile_administrative'], '</h5>
+			<dl class="settings noborder">';
+
+		// Can they view/issue a warning?
+		if ($context['can_view_warning'] && $context['member']['warning'])
+		{
+			echo '
 				<dt>', $txt['profile_warning_level'], ': </dt>
 				<dd>
 					<a href="', $scripturl, '?action=profile;u=', $context['id_member'], ';area=', ($context['can_issue_warning'] && !$context['user']['is_owner'] ? 'issuewarning' : 'viewwarning'), '">', $context['member']['warning'], '%</a>';
 
-		// Can we provide information on what this means?
-		if (!empty($context['warning_status']))
-			echo '
+			// Can we provide information on what this means?
+			if (!empty($context['warning_status']))
+				echo '
 					<span class="smalltext">(', $context['warning_status'], ')</span>';
 
-		echo '
-				</dd>';
-	}
-
-	// Is this member requiring activation and/or banned?
-	if (!empty($context['activate_message']) || !empty($context['member']['bans']))
-	{
-		// If the person looking at the summary has permission, and the account isn't activated, give the viewer the ability to do it themselves.
-		if (!empty($context['activate_message']))
 			echo '
+				</dd>';
+		}
+
+		// Is this member requiring activation and/or banned?
+		if (!empty($context['activate_message']) || !empty($context['member']['bans']))
+		{
+			// If the person looking at the summary has permission, and the account isn't activated, give the viewer the ability to do it themselves.
+			if (!empty($context['activate_message']))
+				echo '
 				<dt class="clear">
 					<span class="alert">', $context['activate_message'], '</span> (<a href="', $context['activate_link'], '">', $context['activate_link_text'], '</a>)
 				</dt>';
 
-		// If the current member is banned, show a message and possibly a link to the ban.
-		if (!empty($context['member']['bans']))
-		{
-			echo '
+			// If the current member is banned, show a message and possibly a link to the ban.
+			if (!empty($context['member']['bans']))
+			{
+				echo '
 				<dt class="clear">
 					<span class="alert">', $txt['user_is_banned'], '</span>&nbsp;[<a href="#" onclick="document.getElementById(\'ban_info\').classList.toggle(\'hidden\');return false;">' . $txt['view_ban'] . '</a>]
 				</dt>
 				<dt class="clear hidden" id="ban_info">
 					<strong>', $txt['user_banned_by_following'], ':</strong>';
 
-			foreach ($context['member']['bans'] as $ban)
-				echo '
+				foreach ($context['member']['bans'] as $ban)
+					echo '
 					<br>
 					<span class="smalltext">', $ban['explanation'], '</span>';
 
-			echo '
+				echo '
 				</dt>';
+			}
 		}
-	}
 
-	echo '
-				<dt>', $txt['date_registered'], ': </dt>
-				<dd>', $context['member']['registered'], '</dd>';
-
-	// If the person looking is allowed, they can check the members IP address and hostname.
-	if ($context['can_see_ip'])
-	{
-		if (!empty($context['member']['ip']))
-			echo '
+		// If the person looking is allowed, they can check the members IP address and hostname.
+		if ($context['can_see_ip'])
+		{
+			if (!empty($context['member']['ip']))
+				echo '
 				<dt>', $txt['ip'], ': </dt>
 				<dd><a href="', $scripturl, '?action=profile;area=tracking;sa=ip;searchip=', $context['member']['ip'], ';u=', $context['member']['id'], '">', $context['member']['ip'], '</a></dd>';
 
-		if (empty($modSettings['disableHostnameLookup']) && !empty($context['member']['ip']))
-			echo '
+			if (empty($modSettings['disableHostnameLookup']) && !empty($context['member']['ip']))
+				echo '
 				<dt>', $txt['hostname'], ': </dt>
 				<dd>', $context['member']['hostname'], '</dd>';
-	}
+		}
 
-	echo '
-				<dt>', $txt['local_time'], ':</dt>
-				<dd>', $context['member']['local_time'], '</dd>';
-
-	if (!empty($modSettings['userLanguage']) && !empty($context['member']['language']))
 		echo '
-				<dt>', $txt['language'], ':</dt>
-				<dd>', $context['member']['language'], '</dd>';
-
-	if ($context['member']['show_last_login'])
-		echo '
-				<dt>', $txt['lastLoggedIn'], ': </dt>
-				<dd>', $context['member']['last_login'], (!empty($context['member']['is_hidden']) ? ' (' . $txt['hidden'] . ')' : ''), '</dd>';
-
-	echo '
 			</dl>';
+	}
 
 	// Are there any custom profile fields for above the signature?
 	if (!empty($context['print_custom_fields']['above_signature']))
@@ -476,9 +508,112 @@ function template_summary()
 			</div>';
 	}
 
+	if (!empty($context['all_characters']))
+	{
+		echo '
+			<h5>', $txt['characters'], '</h5>
+			<ul class="character_list">';
+		foreach ($context['all_characters'] as $character)
+		{
+			echo '
+				<li>
+					', $character['avatar']['small_img'], '
+					<a class="character_name" href="', $character['character_url'], '">', $character['character_name'], '</a>', $character['retired'] ? ' ' . $txt['char_retired'] : '', '
+				</li>';
+		}
+
+		echo '
+			</ul>';
+	}
+
 	echo '
 		</div><!-- #detailedinfo -->
 	</div><!-- #profileview -->';
+}
+
+function template_character_create()
+{
+	global $context, $txt, $scripturl;
+
+	echo '
+	<div class="cat_bar">
+		<h3 class="catbg">', $txt['create_character'], '</h3>
+	</div>';
+
+	echo '
+	<div id="profileview" class="roundframe flow_auto">
+		<div class="errorbox" id="profile_error"', empty($context['form_errors']) ? ' style="display:none"' : '', '>
+			<span>', $txt['char_editing_error'], '</span>
+			<ul id="list_errors">';
+	foreach ($context['form_errors'] as $err)
+		echo '
+				<li>', $err, '</li>';
+	echo '
+			</ul>
+		</div>
+		<div id="basicinfo">';
+
+	echo '
+		</div>
+		<div id="detailedinfo">
+			<form id="creator" action="', $scripturl, '?action=profile;u=', $context['id_member'], ';area=character_create" method="post" accept-charset="', $context['character_set'], '">';
+
+	echo '
+				<dl>
+					<dt>', $txt['char_name'], '</dt>
+					<dd>
+						<input type="text" name="char_name" id="char_name" size="50" value="', $context['character']['character_name'], '" maxlength="50" class="input_text">
+					</dd>
+				</dl>
+				<div class="smalltext">', $txt['you_can_add_later'], '</div>
+				<input type="hidden" name="u" value="', $context['id_member'], '" />
+				<input type="submit" name="create_char" class="button" value="', $txt['create_character'], '" />
+				<input type="hidden" name="', $context['session_var'], '" value="', $context['session_id'], '" />
+			</form>
+		</div>
+	</div>';
+}
+
+function template_character_profile()
+{
+	global $context, $txt, $scripturl;
+
+	echo '
+	<div class="cat_bar">
+		<h3 class="catbg">
+			', $context['character']['character_name'], '
+			', $context['character']['retired'] ? ' ' . $txt['character_retired'] : '', '
+		</h3>
+	</div>
+	<div class="errorbox" style="display:none" id="profile_error"></div>
+	<div id="profileview" class="roundframe flow_auto">
+		<div id="basicinfo">
+			', $context['character']['avatar']['large_img'], '
+			<br><br>';
+
+
+
+	echo '
+		</div>
+		<div id="detailedinfo">
+			<div class="buttonlist">
+				', template_button_strip($context['character_buttons'], 'bottom', array('id' => 'characterbuttons_strip')), '
+			</div>
+			<h5>', $txt['profile_activity'], '</h5>
+			<dl class="settings">
+				<dt>', $txt['char_name'], '</dt>
+				<dd>', $context['character']['character_name'], '</dd>
+				<dt>', $txt['profile_posts'], ':</dt>
+				<dd>', comma_format($context['character']['posts']), $context['character']['days_registered'] >= 1 ? ' (' . $context['character']['posts_per_day'] . ' ' . $txt['posts_per_day'] . ')' : '', '</dd>
+				<dt>', $txt['topics_started'], ':</dt>
+				<dd>', comma_format($context['character']['topics']), '</dd>
+				<dt>', $txt['date_created'], '</dt>
+				<dd>', timeformat($context['character']['date_created']), '</dd>
+				<dt>', $txt['lastLoggedIn'], ': </dt>
+				<dd>', !empty($context['character']['last_active']) ? timeformat($context['character']['last_active']) : '<em>' . $txt['never'] . '</em>', '</dd>
+			</dl>
+		</div>
+	</div>';
 }
 
 /**
