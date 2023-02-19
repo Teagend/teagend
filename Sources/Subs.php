@@ -418,6 +418,20 @@ function updateMemberData(int|array|null $members, array $data)
 		$parameters
 	);
 
+	// If we're updating the real name (aka display name), sync this
+	// to the main/OOC character.
+	if (isset($data['real_name']))
+	{
+		$smcFunc['db_query']('', '
+			UPDATE {db_prefix}characters AS chars, {db_prefix}members AS mem
+			SET chars.character_name = {string:p_real_name}
+			WHERE chars.is_main = 1
+				AND chars.id_member = mem.id_member
+				AND ' . $condition,
+			$parameters
+		);
+	}
+
 	updateStats('postgroups', $members, array_keys($data));
 
 	// Clear any caching?
