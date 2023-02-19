@@ -185,6 +185,10 @@ $txt['permissionname_view_warning_own'] = 'Own account';
 $txt['permissionname_view_warning_any'] = 'Any account';
 $txt['permissionhelp_view_warning'] = 'Allows users to view their own warning status and history (\'Own account\') or that of any user (\'Any account\')';
 
+$txt['permissiongroup_profile_characters'] = 'Characters';
+$txt['permissionname_character_create'] = 'Create characters';
+$txt['permissionhelp_character_create'] = 'Allow the member to create new characters to roleplay with.';
+
 $txt['permissionname_report_user'] = 'Report users\' profiles';
 $txt['permissionhelp_report_user'] = 'This permission will allow members to report other users\' profiles to the admins to alert them of spam or other inappropriate content in the profile.';
 

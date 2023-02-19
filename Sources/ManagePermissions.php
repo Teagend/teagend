@@ -1512,6 +1512,7 @@ function loadAllPermissions()
 			'profile_password' => array(true, 'profile_account'),
 			'profile_remove' => array(true, 'profile_account'),
 			'view_warning' => array(true, 'profile_account'),
+			'character_create' => array(false, 'profile_characters'),
 			'likes_like' => array(false, 'likes'),
 			'mention' => array(false, 'mentions'),
 		),
@@ -1565,6 +1566,7 @@ function loadAllPermissions()
 		'calendar',
 		'maintenance',
 		'member_admin',
+		'pm',
 		'topic',
 		'post',
 	);
@@ -2351,6 +2353,7 @@ function loadIllegalGuestPermissions()
 		'profile_signature',
 		'profile_title',
 		'profile_upload_avatar',
+		'character_create',
 		'view_warning_own',
 		'remove',
 		'report_any',
