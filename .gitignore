@@ -25,6 +25,10 @@ custom_avatar/
 !custom_avatar/index.php
 !custom_avatar/blank.png
 
+# User files #
+##############
+public_files
+
 # Compiled source #
 ###################
 *.com
