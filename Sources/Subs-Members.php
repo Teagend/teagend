@@ -610,8 +610,6 @@ function registerMember(&$regOptions, $return_errors = false)
 		'website_title' => '',
 		'website_url' => '',
 		'time_format' => '',
-		'signature' => '',
-		'avatar' => '',
 		'usertitle' => '',
 		'secret_question' => '',
 		'secret_answer' => '',
@@ -720,6 +718,42 @@ function registerMember(&$regOptions, $return_errors = false)
 		$values,
 		array('id_member'),
 		1
+	);
+
+	// So at this point we've created the account, and we're going to be creating
+	// a character for OOC.
+	$smcFunc['db_insert']('',
+		'{db_prefix}characters',
+		array(
+			'id_member' => 'int', 'character_name' => 'string', 'default_avatar' => 'int',
+			'avatar_rotation' => 'string', 'default_signature' => 'int', 'id_theme' => 'int',
+			'posts' => 'int', 'date_created' => 'int', 'last_active' => 'int',
+			'is_main' => 'int', 'main_char_group' => 'int', 'char_groups' => 'string',
+			'char_sheet' => 'int', 'char_topic' => 'int', 'retired' => 'int',
+			'is_npc' => 'int',
+		),
+		array(
+			$memberID, $regOptions['username'], 0,
+			'', 0, 0,
+			0, $regOptions['register_vars']['date_registered'], $regOptions['register_vars']['date_registered'],
+			0, 0, '',
+			0, 0, 0,
+			0,
+		),
+		['id_character'],
+		1
+	);
+	$real_account = $smcFunc['db_insert_id']('{db_prefix}characters', 'id_character');
+
+	// Now we mark the current character into the user table.
+	$smcFunc['db_query']('', '
+		UPDATE {db_prefix}members
+		SET current_character = {int:char}
+		WHERE id_member = {int:member}',
+		[
+			'char' => $real_account,
+			'member' => $memberID,
+		]
 	);
 
 	// Call an optional function as notification of registration.
