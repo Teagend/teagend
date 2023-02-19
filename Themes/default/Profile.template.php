@@ -518,7 +518,7 @@ function template_summary()
 			echo '
 				<li>
 					', $character['avatar']['small_img'], '
-					<a class="character_name" href="', $character['character_url'], '">', $character['character_name'], '</a>', $character['retired'] ? ' ' . $txt['char_retired'] : '', '
+					<a class="character_name" href="', $character['character_url'], '">', $character['character_name'], '</a>', $character['retired'] ? ' ' . $txt['character_retired'] : '', '
 				</li>';
 		}
 
