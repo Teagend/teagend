@@ -555,9 +555,10 @@ function loadUserSettings()
 		if (empty($cache_enable) || $cache_enable < 2 || ($user_settings = cache_get_data('user_settings-' . $id_member, 60)) == null)
 		{
 			$request = $smcFunc['db_query']('', '
-				SELECT mem.*, COALESCE(a.id_attach, 0) AS id_attach, a.filename, a.attachment_type, a.width AS "attachment_width", a.height AS "attachment_height"
+				SELECT mem.*, chars.id_character, chars.character_name
 				FROM {db_prefix}members AS mem
-					LEFT JOIN {db_prefix}attachments AS a ON (a.id_member = {int:id_member})
+					LEFT JOIN {db_prefix}characters AS mainchar ON (mainchar.id_member = mem.id_member AND mainchar.is_main = 1)
+					LEFT JOIN {db_prefix}characters AS chars ON (chars.id_character = mem.current_character)
 				WHERE mem.id_member = {int:id_member}
 				LIMIT 1',
 				array(
@@ -566,9 +567,6 @@ function loadUserSettings()
 			);
 			$user_settings = $smcFunc['db_fetch_assoc']($request);
 			$smcFunc['db_free_result']($request);
-
-			if (!empty($user_settings['avatar']))
-				$user_settings['avatar'] = get_proxied_url($user_settings['avatar']);
 
 			if (!empty($cache_enable) && $cache_enable >= 2)
 				cache_put_data('user_settings-' . $id_member, $user_settings, 60);
@@ -836,10 +834,12 @@ function loadUserSettings()
 	// Set up the $user_info array.
 	$user_info += array(
 		'id' => $id_member,
+		'id_character' => isset($user_settings['id_character']) ? (int) $user_settings['id_character'] : 0,
+		'character_name' => isset($user_settings['character_name']) ? $user_settings['character_name'] : (isset($user_settings['real_name']) ? $user_settings['real_name'] : ''),
 		'username' => $username,
-		'name' => isset($user_settings['real_name']) ? $user_settings['real_name'] : '',
-		'email' => isset($user_settings['email_address']) ? $user_settings['email_address'] : '',
-		'passwd' => isset($user_settings['passwd']) ? $user_settings['passwd'] : '',
+		'name' => $user_settings['real_name'] ?? '',
+		'email' => $user_settings['email_address'] ?? '',
+		'passwd' => $user_settings['passwd'] ?? '',
 		'language' => empty($user_settings['lngfile']) || empty($modSettings['userLanguage']) ? $language : $user_settings['lngfile'],
 		'is_guest' => $id_member == 0,
 		'is_admin' => in_array(1, $user_info['groups']),
@@ -851,14 +851,6 @@ function loadUserSettings()
 		'time_format' => empty($user_settings['time_format']) ? $modSettings['time_format'] : $user_settings['time_format'],
 		'timezone' => $user_settings['timezone'],
 		'time_offset' => $user_settings['time_offset'],
-		'avatar' => array(
-			'url' => isset($user_settings['avatar']) ? $user_settings['avatar'] : '',
-			'filename' => empty($user_settings['filename']) ? '' : $user_settings['filename'],
-			'custom_dir' => !empty($user_settings['attachment_type']) && $user_settings['attachment_type'] == 1,
-			'id_attach' => isset($user_settings['id_attach']) ? $user_settings['id_attach'] : 0,
-			'width' => isset($user_settings['attachment_width']) > 0 ? $user_settings['attachment_width']: 0,
-			'height' => isset($user_settings['attachment_height']) > 0 ? $user_settings['attachment_height'] : 0,
-		),
 		'smiley_set' => isset($user_settings['smiley_set']) ? $user_settings['smiley_set'] : '',
 		'messages' => empty($user_settings['instant_messages']) ? 0 : $user_settings['instant_messages'],
 		'unread_messages' => empty($user_settings['unread_messages']) ? 0 : $user_settings['unread_messages'],
@@ -867,7 +859,7 @@ function loadUserSettings()
 		'buddies' => !empty($modSettings['enable_buddylist']) && !empty($user_settings['buddy_list']) ? explode(',', $user_settings['buddy_list']) : array(),
 		'ignoreboards' => !empty($user_settings['ignore_boards']) && !empty($modSettings['allow_ignore_boards']) ? explode(',', $user_settings['ignore_boards']) : array(),
 		'ignoreusers' => !empty($user_settings['pm_ignore_list']) ? explode(',', $user_settings['pm_ignore_list']) : array(),
-		'warning' => isset($user_settings['warning']) ? $user_settings['warning'] : 0,
+		'warning' => $user_settings['warning'] ?? 0,
 		'permissions' => array(),
 	);
 	$user_info['groups'] = array_unique($user_info['groups']);
@@ -1880,6 +1872,205 @@ function loadMemberContext($user, $display_custom_fields = false)
 }
 
 /**
+ * Populates the avatar data for a number of characters.
+ *
+ * @param array $character_ids Character IDs to load.
+ */
+function loadAvatars(array $character_ids): void
+{
+	global $avatarData, $smcFunc, $modSettings;
+
+	if (empty($avatarData))
+		$avatarData = array();
+
+	$character_ids = array_diff($character_ids, [0], array_keys($avatarData));
+
+	if (empty($character_ids))
+		return;
+
+	foreach ($character_ids as $character)
+	{
+		if (!isset($avatarData[$character]))
+		{
+			$default_avatar = $modSettings['avatar_url'] . '/default.png';
+			$avatarData[$character] = array(
+				'default' => array(
+					'large' => $default_avatar,
+					'small' => $default_avatar,
+					'large_img' => '<img class="avatar avatar-large" src="' . $default_avatar . '">',
+					'small_img' => '<img class="avatar avatar-small" src="' . $default_avatar . '">',
+				),
+				'avatars' => array(),
+			);
+		}
+	}
+
+	$request = $smcFunc['db_query']('', '
+		SELECT c.id_character, a.id_avatar, c.default_avatar, c.avatar_rotation, a.avatar_slot, a.url, a.id_file,
+			a.width, a.height, f.filetype, f.filename, f.timemodified
+		FROM {db_prefix}characters AS c
+		INNER JOIN {db_prefix}avatars AS a ON (c.id_character = a.id_character)
+		LEFT JOIN {db_prefix}files AS f ON (a.id_file = f.id)
+		WHERE c.id_character IN ({array_int:characters})',
+		[
+			'characters' => $character_ids,
+		]
+	);
+	$loaded = array();
+	while ($row = $smcFunc['db_fetch_assoc']($request))
+	{
+		$loaded[$row['id_character']] = array(
+			'default' => $row['default_avatar'],
+			'rotation' => $row['avatar_rotation'],
+		);
+		unset($row['default_avatar'], $row['avatar_rotation']);
+
+		$row += get_avatar_urls($row);
+
+		$avatarData[$row['id_character']]['avatars'][$row['id_avatar']] = $row;
+	}
+	$smcFunc['db_free_result']($request);
+
+	foreach ($loaded as $character_id => $loaded_character)
+	{
+		$current_avatar = null;
+
+		// Is there a rotation?
+		if (!empty($loaded_character['rotation']))
+		{
+			$loaded_character['rotation'] = array_map('intval', explode(',', $loaded_character['rotation']));
+			$possibles = [];
+			foreach ($loaded_character['rotation'] as $avatar_id)
+			{
+				if (isset($avatarData[$character_id]['avatars'][$avatar_id]))
+					$possibles[] = $avatar_id;
+			}
+
+			if (!empty($possibles))
+			{
+				$current_avatar = array_rand($avatarData[$character_id]['avatars']);
+			}
+		}
+
+		// If not is there one set?
+		if (empty($current_avatar) && !empty($loaded_character['default']) && !empty($avatarData[$character_id]['avatars'][$loaded_character['default']]))
+			$current_avatar = $loaded_character['default'];
+
+		// Still no avatar? We already set the default, use that.
+		if (empty($current_avatar))
+			continue;
+
+		// Set the images we're going to use.
+		$avatar = $avatarData[$character_id]['avatars'][$current_avatar];
+		$avatarData[$character_id]['default'] = array(
+			'large_url' => $avatar['large_url'],
+			'small_url' => $avatar['small_url'],
+			'large_img' => $avatar['large_img'],
+			'small_img' => $avatar['small_img'],
+		);
+	}
+}
+
+/**
+ * Get the details of the avatar for the current character.
+ *
+ * @return array The array details of the current characetr's avatar, {@see get_avatar_urls}
+ */
+function get_current_avatar(): array
+{
+	global $user_info, $avatarData;
+
+	if (empty($user_info['id_character']))
+		return get_avatar_urls(array());
+
+	if (empty($_SESSION['current_avatar']))
+	{
+		loadAvatars([$user_info['id_character']]);
+		$_SESSION['current_avatar'] = $avatarData[$user_info['id_character']]['default'];
+	}
+
+	return $_SESSION['current_avatar'];
+}
+
+/**
+ * Given an avatar array, return the URLs for that avatar.
+ *
+ * @param array $avatar An avatar array (usually an entry from the avatars table)
+ * @return array An array with keys: large_url, small_url, large_img, small_img for large/small avatar URL or img tag.
+ */
+function get_avatar_urls(array $avatar): array
+{
+	global $modSettings;
+
+	// So this avatar is an external image, let's use that as-is.
+	if (!empty($avatar['url']))
+	{
+		return array(
+			'large_url' => get_proxied_url($avatar['url']),
+			'small_url' => get_proxied_url($avatar['url']),
+			'large_img' => '<img class="avatar avatar-large" src="' . get_proxied_url($avatar['url']) . '"' . (!empty($avatar['width']) ? ' width="' . $avatar['width'] . '"' : '') . (!empty($avatar['height']) ? ' height="' . $avatar['height'] . '"' : '') . '>',
+			'small_img' => '<img class="avatar avatar-small" src="' . get_proxied_url($avatar['url']) . '">',
+		);
+	}
+
+	if (!empty($avatar['id_file']))
+	{
+		$return = array(
+			'large_url' => get_filesystem_url('avatars/large', $avatar['filename']),
+			'small_url' => get_filesystem_url('avatars/small', $avatar['filename']),
+		);
+		$return['large_img'] = '<img class="avatar avatar-large" src="' . $return['large_url'] . '"' . (!empty($avatar['width']) ? ' width="' . $avatar['width'] . '"' : '') . (!empty($avatar['height']) ? ' height="' . $avatar['height'] . '"' : '') . '>';
+		if (!empty($avatar['width']) && !empty($avatar['height']))
+		{
+			[$width, $height] = get_avatar_small_size($avatar['width'], $avatar['height']);
+			$return['small_img'] = '<img class="avatar avatar-small" src="' . $return['small_url'] . '" width="' . $width . '"" height="' . $height . '">';
+		}
+		else
+		{
+			$return['small_img'] = '<img class="avatar avatar-small" src="' . $return['small_url'] . '">';
+		}
+		return $return;
+	}
+
+	$default_avatar = get_proxied_url($modSettings['avatar_url'] . '/default.png');
+	return array(
+		'large' => $default_avatar,
+		'small' => $default_avatar,
+		'large_img' => '<img class="avatar avatar-large" src="' . $default_avatar . '">',
+		'small_img' => '<img class="avatar avatar-small" src="' . $default_avatar . '">',
+	);
+}
+
+/**
+ * Work out the small size for an avatar based on its original size.
+ *
+ * @param int $src_width The original width in pixels
+ * @param int $src_height The original height in pixels
+ * @return array An array containing [width, height] of the avatar for the small version
+ */
+function get_avatar_small_size($src_width, $src_height): array
+{
+	$max_width = 50;
+	$max_height = 50;
+
+	if (!empty($max_width) && (empty($max_height) || round($src_height * $max_width / $src_width) <= $max_height))
+	{
+		$dst_width = $max_width;
+		$dst_height = round($src_height * $max_width / $src_width);
+	}
+	elseif (!empty($max_height))
+	{
+		$dst_width = round($src_width * $max_height / $src_height);
+		$dst_height = $max_height;
+	}
+
+	if (!empty($dst_width) && !empty($dst_height) && ($dst_width < $src_width || $dst_height < $src_height))
+		return [$dst_width, $dst_height];
+
+	return [$src_width, $src_height];
+}
+
+/**
  * Retrieves a filesystem object for a given bucket, e.g. avatars/large
  *
  * It is not expected that you will call this function directly.
@@ -2355,6 +2546,7 @@ function loadTheme($id_theme = 0, $initialize = true)
 			// A user can mod if they have permission to see the mod center, or they are a board/group/approval moderator.
 			'can_mod' => allowedTo('access_mod_center') || (!$user_info['is_guest'] && ($user_info['mod_cache']['gq'] != '0=1' || $user_info['mod_cache']['bq'] != '0=1' || ($modSettings['postmod_active'] && !empty($user_info['mod_cache']['ap'])))),
 			'name' => $user_info['username'],
+			'character_name' => $user_info['character_name'],
 			'language' => $user_info['language'],
 			'email' => $user_info['email'],
 			'ignoreusers' => $user_info['ignoreusers'],

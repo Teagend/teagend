@@ -796,6 +796,7 @@ $txt['mark_read_short'] = 'Mark Read';
 
 $txt['alerts'] = 'Alerts';
 
+$txt['posting_as'] = 'Posting as %1$s';
 $txt['pm_short'] = 'My Messages';
 $txt['pm_menu_read'] = 'Read your messages';
 $txt['pm_menu_send'] = 'Send a message';

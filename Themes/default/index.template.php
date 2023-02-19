@@ -210,12 +210,9 @@ function template_body_above()
 		echo '
 			<ul class="floatleft" id="top_info">
 				<li>
-					<a href="', $scripturl, '?action=profile"', !empty($context['self_profile']) ? ' class="active"' : '', ' id="profile_menu_top">';
+					<a href="', $scripturl, '?action=profile"', !empty($context['self_profile']) ? ' class="active"' : '', ' id="profile_menu_top">', $context['user']['avatar']['small_img'];
 
-		if (!empty($context['user']['avatar']))
-			echo $context['user']['avatar']['image'];
-
-		echo '<span class="textmenu">', $context['user']['name'], '</span></a>
+		echo '<span class="textmenu">', sprintf($txt['posting_as'], $context['user']['character_name']), '</span></a>
 					<div id="profile_menu" class="top_menu"></div>
 				</li>';
 
