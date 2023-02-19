@@ -5282,6 +5282,8 @@ function host_from_ip($ip)
 		else
 			$test = @shell_exec('host ' . @escapeshellarg($ip));
 
+		$test = (string) $test;
+
 		// Did host say it didn't find anything?
 		if (strpos($test, 'not found') !== false)
 			$host = '';
