@@ -519,7 +519,7 @@ function template_single_post($message)
 
 	// Show a link to the member's profile.
 	echo '
-								', $message['member']['link'];
+								', $message['poster_link'];
 
 	// Custom fields AFTER the username?
 	if (!empty($message['custom_fields']['after_member']))
@@ -533,7 +533,10 @@ function template_single_post($message)
 							<ul class="user_info">';
 
 	// Show the member's custom title, if they have one.
-	if (!empty($message['member']['title']))
+	if (!empty($message['character']['character_title']))
+		echo '
+								<li class="title">', $message['character']['character_title'], '</li>';
+	elseif (!empty($message['member']['title']))
 		echo '
 								<li class="title">', $message['member']['title'], '</li>';
 
@@ -543,11 +546,23 @@ function template_single_post($message)
 								<li class="membergroup">', $message['member']['group'], '</li>';
 
 	// Show the user's avatar.
-	if (!empty($modSettings['show_user_images']) && empty($options['show_no_avatars']) && !empty($message['member']['avatar']['image']))
-		echo '
+	if (!empty($modSettings['show_user_images']) && empty($options['show_no_avatars']) && !empty($message['member']['avatar']['large_img']))
+	{
+		if (!empty($member['member']['href']))
+		{
+			echo '
 								<li class="avatar">
-									<a href="', $message['member']['href'], '">', $message['member']['avatar']['image'], '</a>
+									<a href="', $message['member']['href'], '">', $message['member']['avatar']['large_img'], '</a>
 								</li>';
+		}
+		else
+		{
+			echo '
+								<li class="avatar">
+									', $message['member']['avatar']['large_img'], '
+								</li>';
+		}
+	}
 
 	// Are there any custom fields below the avatar?
 	if (!empty($message['custom_fields']['below_avatar']))
@@ -981,6 +996,62 @@ function template_quickreply()
 
 		echo '
 						</dl>';
+	}
+	else
+	{
+		global $avatarData, $user_info;
+
+		if (!empty($context['possible_avatars']['default']['rotation']))
+		{
+			echo '
+						<input type="hidden" name="post_avatar" value="0">
+						<h5>', $context['user']['character_name'], '</h5>
+						', $context['current_avatar']['large_img'];
+		}
+		elseif (!empty($context['possible_avatars']['avatars']) && count($context['possible_avatars']['avatars']) > 1)
+		{
+			echo '
+						<h5>', $context['user']['character_name'], '</h5>
+						<div id="avatar_container"></div>
+						<select name="post_avatar" id="post_avatar_selector">
+							<option value="0">', $txt['default_avatar'], '</option>';
+
+			foreach ($context['possible_avatars']['avatars'] as $id_avatar => $avatar)
+			{
+				echo '
+							<option value="', $id_avatar, '">', $avatar['avatar_slot'], '</option>';
+			}
+			echo '
+						</select>
+						<script>
+							var avatars = ', json_encode($context['possible_avatars']['avatars']), ';
+							function updateAvatar()
+							{
+								var selected_avatar = document.getElementById("post_avatar_selector").value;
+								if (selected_avatar == "0") {
+									for (var i in avatars) {
+										if (avatars[i].is_default)  {
+											document.getElementById("avatar_container").innerHTML = avatars[i].large_img;
+										}
+									}
+								}
+								else
+								{
+									document.getElementById("avatar_container").innerHTML = avatars[selected_avatar].large_img;
+								}
+							}
+							updateAvatar();
+							document.getElementById("post_avatar_selector").addEventListener("change", updateAvatar, false);
+						</script>';
+		}
+		else
+		{
+			echo '
+						<input type="hidden" name="post_avatar" value="0">
+						<h5>', $context['user']['character_name'], '</h5>
+						', $context['current_avatar']['large_img'];
+		}
+
 	}
 
 	echo '

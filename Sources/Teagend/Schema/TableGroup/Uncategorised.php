@@ -261,6 +261,7 @@ class Uncategorised
 					'id_character' => Column::int()->auto_increment(),
 					'id_member' => Column::mediumint(),
 					'character_name' => Column::varchar(255),
+					'character_title' => Column::varchar(255),
 					'default_avatar' => Column::int(),
 					'avatar_rotation' => Column::varchar(100),
 					'default_signature' => Column::int(),
@@ -779,6 +780,7 @@ class Uncategorised
 					'id_parent' => Column::smallint()->signed()->default(-2),
 					'is_character' => Column::tinyint(),
 					'tfa_required' => Column::tinyint(),
+					'badge_order' => Column::smallint(),
 				],
 				[
 					Index::primary(['id_group']),

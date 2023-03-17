@@ -32,7 +32,7 @@ function Display()
 {
 	global $scripturl, $txt, $modSettings, $context, $settings;
 	global $options, $sourcedir, $user_info, $board_info, $topic, $board;
-	global $messages_request, $language, $smcFunc;
+	global $messages_request, $language, $smcFunc, $memberContext, $avatarData;
 
 	// What are you gonna display if these are empty?!
 	if (empty($topic))
@@ -1090,7 +1090,8 @@ function Display()
 		loadMemberData($posters);
 		$messages_request = $smcFunc['db_query']('', '
 			SELECT
-				id_msg, icon, subject, poster_time, poster_ip, id_member, modified_time, modified_name, modified_reason, body,
+				id_msg, icon, subject, poster_time, poster_ip, id_member, id_character, id_avatar,
+				modified_time, modified_name, modified_reason, body,
 				smileys_enabled, poster_name, poster_email, approved, likes,
 				id_msg_modified < {int:new_from} AS is_read
 				' . (!empty($msg_selects) ? (', ' . implode(', ', $msg_selects)) : '') . '
@@ -1200,6 +1201,38 @@ function Display()
 	$context['can_set_notify'] = !$user_info['is_guest'];
 
 	$context['can_print'] = empty($modSettings['disable_print_topic']);
+
+	// If we're posting, we need to make sure we have the character data.
+	if ($context['can_reply'])
+	{
+		$possible_characters = get_user_possible_characters($user_info['id'], $board);
+
+		if (!isset($possible_characters[$user_info['id_character']]))
+		{
+			$context['can_reply'] = false;
+			$context['can_reply_unapproved'] = false;
+			$context['can_reply_approved'] = false;
+			$context['can_quote'] = false;
+		}
+		else
+		{
+			// Make sure we have some avatar to work with.
+			$context['current_avatar'] = get_default_avatar();
+			$context['possible_avatars'] = [];
+
+			if (!$user_info['is_guest'])
+			{
+				foreach ($memberContext[$context['user']['id']]['characters'] as $char_id => $character)
+				{
+					if ($char_id == $user_info['id_character'])
+					{
+						$context['current_avatar'] = $character['avatar'];
+						$context['possible_avatars'] = $avatarData[$char_id] ?? [];
+					}
+				}
+			}
+		}
+	}
 
 	// Start this off for quick moderation - it will be or'd for each post.
 	$context['can_remove_post'] = allowedTo('delete_any') || (allowedTo('delete_replies') && $context['user']['started']);
@@ -1402,6 +1435,7 @@ function prepareDisplayContext($reset = false)
 {
 	global $settings, $txt, $modSettings, $scripturl, $options, $user_info, $smcFunc;
 	global $memberContext, $context, $messages_request, $topic, $board_info, $sourcedir;
+	global $avatarData;
 
 	static $counter = null;
 
@@ -1461,6 +1495,7 @@ function prepareDisplayContext($reset = false)
 		// Notice this information isn't used anywhere else....
 		$memberContext[$message['id_member']]['name'] = $message['poster_name'];
 		$memberContext[$message['id_member']]['id'] = 0;
+		$memberContext[$message['id_member']]['avatar'] = get_default_avatar();
 		$memberContext[$message['id_member']]['group'] = $txt['guest_title'];
 		$memberContext[$message['id_member']]['link'] = $message['poster_name'];
 		$memberContext[$message['id_member']]['email'] = $message['poster_email'];
@@ -1501,7 +1536,7 @@ function prepareDisplayContext($reset = false)
 		'id' => $message['id_msg'],
 		'href' => $scripturl . '?msg=' . $message['id_msg'],
 		'link' => '<a href="' . $scripturl . '?msg=' . $message['id_msg'] . '" rel="nofollow">' . $message['subject'] . '</a>',
-		'member' => &$memberContext[$message['id_member']],
+		'member' => $memberContext[$message['id_member']],
 		'icon' => $message['icon'],
 		'icon_url' => $settings[$context['icon_sources'][$message['icon']]] . '/post/' . $message['icon'] . '.png',
 		'subject' => $message['subject'],
@@ -1526,6 +1561,65 @@ function prepareDisplayContext($reset = false)
 		'can_see_ip' => allowedTo('moderate_forum') || ($message['id_member'] == $user_info['id'] && !empty($user_info['id'])),
 		'css_class' => $message['approved'] ? 'windowbg' : 'approvebg',
 	);
+
+	if (!empty($output['member']['characters'][$message['id_character']])) {
+		$output['character'] = $output['member']['characters'][$message['id_character']];
+
+		if (!empty($message['id_avatar']) && !empty($avatarData[$message['id_character']]['avatars'][$message['id_avatar']]))
+		{
+			$output['member']['avatar'] = $avatarData[$message['id_character']]['avatars'][$message['id_avatar']];
+		}
+		elseif (!empty($output['character']['avatar']))
+		{
+			$output['member']['avatar'] = $output['character']['avatar'];
+		}
+		else
+		{
+			$output['member']['avatar'] = get_default_avatar();
+		}
+	}
+
+	// We need to fix display of badges and everything - for reasons
+	// of online behaviour we can't trust what we might have now.
+	// In any case this lets us handle multiple badges.
+	if (!empty($output['character']))
+	{
+		if (!empty($output['character']['is_main']))
+		{
+			// We use the main account groups for this.
+			$group_list = array_merge(
+				[$memberContext[$message['id_member']]['group_id']],
+				$memberContext[$message['id_member']]['secondary_groups'],
+			);
+		}
+		else
+		{
+			// We use the character's group(s)
+			$group_list = array_merge(
+				[$output['character']['main_char_group']],
+				!empty($output['character']['char_groups']) ? explode(',', $output['character']['char_groups']) : []
+			);
+		}
+		$group_info = get_labels_and_badges($group_list);
+		$output['member']['group'] = $group_info['title'];
+		$output['member']['group_color'] = $group_info['color'];
+		$output['member']['group_icons'] = $group_info['badges'];
+	}
+
+	$output['poster_name'] = $output['character']['character_name'] ?? $output['member']['name'];
+	if (!empty($output['character']['character_url']))
+		$output['poster_url'] = $output['character']['character_url'];
+
+	if (!empty($output['poster_url']))
+	{
+		$output['poster_link'] = '<a href="' . $output['poster_url'] . '">' . $output['poster_name'] . '</a>';
+		$output['poster_link_color'] = '<a href="' . $output['poster_url'] . '"' . (!empty($group_info['color']) ? ' style="color:' . $group_info['color'] . ';"' : '') . '>' . $output['poster_name'] . '</a>';
+	}
+	else
+	{
+		$output['poster_link'] = $output['poster_name'];
+		$output['poster_link_color'] = '<span ' . (!empty($group_info['color']) ? 'style="color:' . $group_info['color'] . ';"' : '') . '>' . $output['poster_name'] . '</span>';
+	}
 
 	// Does the file contains any attachments? if so, change the icon.
 	if (!empty($output['attachment']))

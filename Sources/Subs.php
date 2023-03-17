@@ -8528,4 +8528,131 @@ function tokenTxtReplace($stringSubject = '')
 	return str_replace($toFind, $replaceWith, $stringSubject);
 }
 
+function is_board_in_character($board_id = 0): bool
+{
+	global $board_info, $smcFunc;
+	static $boards_ic = null;
+
+	if (isset($board_info['id']) && $board_info['id'] == $board_id)
+		return !empty($board_info['in_character']);
+
+	if ($boards_ic === null)
+	{
+		$board_in_character = false;
+		$request = $smcFunc['db_query']('', '
+			SELECT id_board, in_character
+			FROM {db_prefix}boards');
+		while ($row = $smcFunc['db_fetch_assoc']($request))
+		{
+			$boards_ic[$row['id_board']] = !empty($row['in_character']);
+		}
+		$smcFunc['db_free_result']($request);
+	}
+
+	return $boards_ic[$board_id] ?? false;
+}
+
+/**
+ * Gets the list of possible characters applicable to a user right now.
+ *
+ * @param int $id_member The member whose characters we should look at.
+ * @param int $board_id The board ID in which we want to look at relevant characters.
+ * @return array An array of characters that could conceivably post in the current board based on IC/OOC rules.
+ */
+function get_user_possible_characters($id_member, $board_id = 0, $do_announce = true)
+{
+	global $modSettings, $memberContext, $user_profile, $user_info, $scripturl, $txt;
+	static $announced = false;
+
+	// First, some healthy defaults.
+	if (empty($modSettings['characters_ic_may_post']))
+		$modSettings['characters_ic_may_post'] = 'ic';
+	if (empty($modSettings['characters_ooc_may_post']))
+		$modSettings['characters_ooc_may_post'] = 'ooc';
+
+	$board_in_character = is_board_in_character($board_id);
+
+	$characters = [];
+
+	if (empty($id_member))
+	{
+		if (is_board_in_character($board_id) && $modSettings['characters_ic_may_post'] == 'ic')
+		{
+			if (!$announced && $do_announce)
+			{
+				session_flash('warning', $txt['cannot_post_ic_guest']);
+				$announced = true;
+			}
+			return [];
+		}
+		return [
+			0 => [
+				'name' => $txt['guest'],
+				'avatar' => get_default_avatar(),
+			],
+		];
+	}
+
+	if (empty($user_profile[$id_member]))
+		loadMemberData($id_member);
+	if (empty($memberContext[$id_member]))
+		loadMemberContext($id_member, true);
+
+	if (empty($memberContext[$id_member]['characters']))
+	{
+		return [];
+	}
+
+	foreach ($memberContext[$id_member]['characters'] as $char_id => $character)
+	{
+		if (!allowedTo('admin_forum'))
+		{
+			if ($board_in_character)
+			{
+				if ($modSettings['characters_ic_may_post'] == 'ic' && $character['is_main'])
+				{
+					// IC board that requires IC only, and character is main and (not admin or no admin override)
+					if (!$announced && $character['id_character'] == $user_info['id_character'])
+					{
+						session_flash('warning', $txt['cannot_post_ooc']);
+						$announced = true;
+					}
+					continue;
+				}
+			}
+			else
+			{
+				if ($modSettings['characters_ooc_may_post'] == 'ooc' && !$character['is_main'])
+				{
+					// OOC board that requires OOC only, and character is not main and (not admin or no admin override)
+					if (!$announced && $character['id_character'] == $user_info['id_character'] && $do_announce)
+					{
+						session_flash('warning', $txt['cannot_post_ic']);
+						$announced = true;
+					}
+					continue;
+				}
+			}
+
+			if (!$character['is_main'] && !empty($modSettings['characters_ic_require_sheet']) && empty($character['char_sheet']))
+			{
+				if ($char_id == $user_info['id_character'] && !$announced && $do_announce)
+				{
+					$announced = true;
+					$link = $scripturl . '?action=profile;area=character_sheet;u=' . $user_info['id'] . ';char=' . $char_id;
+					session_flash('warning', sprintf($txt['cannot_post_ic_without_sheet'], $link));
+				}
+				continue;
+			}
+		}
+
+		$characters[$char_id] = [
+			'name' => $character['character_name'],
+			'avatar' => $character['avatar'],
+		];
+	}
+
+	return $characters;
+}
+
 ?>

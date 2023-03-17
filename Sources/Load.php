@@ -1111,7 +1111,7 @@ function loadBoard()
 				b.id_parent, c.name AS cname, COALESCE(mg.id_group, 0) AS id_moderator_group, mg.group_name,
 				COALESCE(mem.id_member, 0) AS id_moderator,
 				mem.real_name' . (!empty($topic) ? ', b.id_board' : '') . ', b.child_level,
-				b.id_theme, b.override_theme, b.count_posts, b.id_profile, b.redirect,
+				b.id_theme, b.override_theme, b.count_posts, b.id_profile, b.redirect, b.in_character,
 				b.unapproved_topics, b.unapproved_posts' . (!empty($topic) ? ', t.approved, t.id_member_started' : '') . '
 				' . (!empty($custom_column_selects) ? (', ' . implode(', ', $custom_column_selects)) : '') . '
 			FROM {db_prefix}boards AS b' . (!empty($topic) ? '
@@ -1152,6 +1152,7 @@ function loadBoard()
 				'parent_boards' => getBoardParents($row['id_parent']),
 				'parent' => $row['id_parent'],
 				'child_level' => $row['child_level'],
+				'in_character' => !empty($row['in_character']),
 				'theme' => $row['id_theme'],
 				'override_theme' => !empty($row['override_theme']),
 				'profile' => $row['id_profile'],
@@ -1563,7 +1564,7 @@ function loadMemberData($users, $is_name = false, $set = 'normal')
 	{
 		$characters_loaded = [];
 		$request = $smcFunc['db_query']('', '
-			SELECT chars.id_member, chars.id_character, chars.character_name,
+			SELECT chars.id_member, chars.id_character, chars.character_name, chars.character_title,
 				chars.default_avatar, chars.avatar_rotation,
 				chars.posts, chars.date_created, chars.last_active, chars.is_main,
 				chars.main_char_group, chars.char_groups, chars.char_sheet, chars.char_topic, chars.retired
@@ -1579,7 +1580,8 @@ function loadMemberData($users, $is_name = false, $set = 'normal')
 			$user_profile[$row['id_member']]['characters'][$row['id_character']] = [
 				'id_character' => $row['id_character'],
 				'character_name' => $row['character_name'],
-				'character_url' => $scripturl . '?action=profile;u=' . $row['id_member'] . ';area=characters;char=' . $row['id_character'],
+				'character_title' => !empty($modSettings['titlesEnable']) ? $row['character_title'] : '',
+				'character_url' => $row['is_main'] ? $scripturl . '?action=profile;u=' . $row['id_member'] : $scripturl . '?action=profile;u=' . $row['id_member'] . ';area=characters;char=' . $row['id_character'],
 				'posts' => $row['posts'],
 				'date_created' => $row['date_created'],
 				'last_active' => $row['last_active'],
@@ -1760,6 +1762,8 @@ function loadMemberContext($user, $display_custom_fields = false)
 		'show_email' => !$user_info['is_guest'] && ($user_info['id'] == $profile['id_member'] || allowedTo('moderate_forum')),
 		'registered' => empty($profile['date_registered']) ? $txt['not_applicable'] : timeformat($profile['date_registered']),
 		'registered_timestamp' => empty($profile['date_registered']) ? 0 : $profile['date_registered'],
+		'characters' => !empty($profile['characters']) ? $profile['characters'] : [],
+		'current_character' => !empty($profile['online_character']) ? $profile['online_character'] : 0,
 	);
 
 	// If the set isn't minimal then load the monstrous array.
@@ -1854,6 +1858,7 @@ function loadMemberContext($user, $display_custom_fields = false)
 			'options' => $profile['options'],
 			'is_guest' => false,
 			'primary_group' => $profile['primary_group'],
+			'secondary_groups' => explode(',', $profile['additional_groups']),
 			'group' => $profile['member_group'],
 			'group_color' => $profile['member_group_color'],
 			'group_id' => $profile['id_group'],
@@ -1940,6 +1945,20 @@ function loadMemberContext($user, $display_custom_fields = false)
 	return $memberContext[$user];
 }
 
+function get_default_avatar(): array
+{
+	global $modSettings;
+
+	$default_avatar = $modSettings['avatar_url'] . '/default.png';
+
+	return array(
+		'large' => $default_avatar,
+		'small' => $default_avatar,
+		'large_img' => '<img class="avatar avatar-large" src="' . $default_avatar . '">',
+		'small_img' => '<img class="avatar avatar-small" src="' . $default_avatar . '">',
+	);
+}
+
 /**
  * Populates the avatar data for a number of characters.
  *
@@ -1961,14 +1980,8 @@ function loadAvatars(array $character_ids): void
 	{
 		if (!isset($avatarData[$character]))
 		{
-			$default_avatar = $modSettings['avatar_url'] . '/default.png';
 			$avatarData[$character] = array(
-				'default' => array(
-					'large' => $default_avatar,
-					'small' => $default_avatar,
-					'large_img' => '<img class="avatar avatar-large" src="' . $default_avatar . '">',
-					'small_img' => '<img class="avatar avatar-small" src="' . $default_avatar . '">',
-				),
+				'default' => get_default_avatar(),
 				'avatars' => array(),
 			);
 		}
@@ -1992,6 +2005,7 @@ function loadAvatars(array $character_ids): void
 			'default' => $row['default_avatar'],
 			'rotation' => $row['avatar_rotation'],
 		);
+		$row['is_default'] = !empty($row['default_avatar']) && !empty($row['id_avatar']) && $row['default_avatar'] == $row['id_avatar'];
 		unset($row['default_avatar'], $row['avatar_rotation']);
 
 		$row += get_avatar_urls($row);
@@ -2003,6 +2017,7 @@ function loadAvatars(array $character_ids): void
 	foreach ($loaded as $character_id => $loaded_character)
 	{
 		$current_avatar = null;
+		$is_rotation = false;
 
 		// Is there a rotation?
 		if (!empty($loaded_character['rotation']))
@@ -2018,6 +2033,7 @@ function loadAvatars(array $character_ids): void
 			if (!empty($possibles))
 			{
 				$current_avatar = array_rand($avatarData[$character_id]['avatars']);
+				$is_rotation = true;
 			}
 		}
 
@@ -2036,6 +2052,7 @@ function loadAvatars(array $character_ids): void
 			'small_url' => $avatar['small_url'],
 			'large_img' => $avatar['large_img'],
 			'small_img' => $avatar['small_img'],
+			'rotation' => $is_rotation,
 		);
 	}
 }
@@ -2101,13 +2118,7 @@ function get_avatar_urls(array $avatar): array
 		return $return;
 	}
 
-	$default_avatar = get_proxied_url($modSettings['avatar_url'] . '/default.png');
-	return array(
-		'large' => $default_avatar,
-		'small' => $default_avatar,
-		'large_img' => '<img class="avatar avatar-large" src="' . $default_avatar . '">',
-		'small_img' => '<img class="avatar avatar-small" src="' . $default_avatar . '">',
-	);
+	return get_default_avatar();
 }
 
 /**
@@ -4361,6 +4372,108 @@ function get_auth_secret()
 
 
 	return $auth_secret;
+}
+
+/**
+ * Get the entire list of groups, their icons, color etc.
+ *
+ * @return array A list of groups, excluding hidden groups
+ */
+function get_char_membergroup_data()
+{
+	global $smcFunc, $settings, $context;
+	static $groups = null;
+
+	if ($groups !== null)
+		return $groups;
+
+	// We will want to get all the membergroups since potentially we're doing display
+	// of multiple per character. We need to fetch them in the order laid down
+	// by admins for display purposes and we will need to cache it.
+	if (($groups = cache_get_data('char_membergroups', 300)) === null)
+	{
+		$groups = [];
+		$request = $smcFunc['db_query']('', '
+			SELECT id_group, group_name, online_color, icons, is_character
+			FROM {db_prefix}membergroups
+			WHERE hidden != 2
+			ORDER BY badge_order');
+		while ($row = $smcFunc['db_fetch_assoc']($request))
+		{
+			$row['parsed_icons'] = '';
+			if (!empty($row['icons']))
+			{
+				list($qty, $badge) = explode('#', $row['icons']);
+				if ($qty > 0)
+				{
+					if (file_exists($settings['actual_theme_dir'] . '/images/membericons/' . $badge))
+						$group_icon_url = $settings['images_url'] . '/membericons/' . $badge;
+					elseif (file_exists($settings['default_images_url'] . '/membericons/' . $badge))
+						$group_icon_url = $settings['default_images_url'] . '/membericons/' . $badge;
+					else
+						$group_icon_url = '';
+
+					if (!empty($group_icon_url))
+					{
+						$row['parsed_icons'] = str_repeat('<img src="' . str_replace('$language', $context['user']['language'], $group_icon_url) . '" alt="*">', $qty);
+					}
+				}
+			}
+
+			$groups[$row['id_group']] = $row;
+		}
+
+		$smcFunc['db_free_result']($request);
+		cache_put_data('char_membergroups', $groups, 300);
+	}
+
+	return $groups;
+}
+
+/**
+ * Get the badge, colour and title based on the groups a poster is part of.
+ *
+ * @param array $group_list The list of groups an account or character contains.
+ * @return array Title, color, badges for the group list
+ */
+function get_labels_and_badges($group_list)
+{
+	var_dump($group_list);
+	$group_title = null;
+	$group_color = '';
+	$groups = get_char_membergroup_data();
+	$group_limit = 2;
+
+	$badges = '';
+	$combined_badges = [];
+	$badges_done = 0;
+	foreach ($group_list as $id_group) {
+		if (empty($groups[$id_group]))
+			continue;
+
+		if ($group_title === null) {
+			$group_title = $groups[$id_group]['group_name'];
+			$group_color = $groups[$id_group]['online_color'];
+		}
+
+		if (empty($groups[$id_group]['parsed_icons']))
+			continue;
+
+		$badges .= '<div class="group_icons group_icons_' . $id_group . '">' . $groups[$id_group]['parsed_icons'] . '</div>';
+		$combined_badges[] = '<div class="char_group_title"' . (!empty($groups[$id_group]['online_color']) ? ' style="color:' . $groups[$id_group]['online_color'] . '"' : '') . '>' . $groups[$id_group]['group_name'] . '</div><div class="char_group_badges">' . $groups[$id_group]['parsed_icons'] . '</div>';
+
+		$badges_done++;
+		if ($badges_done >= $group_limit) {
+			break;
+		}
+	}
+
+	return [
+		'title' => $group_title,
+		'color' => $group_color,
+		'badges' => $badges,
+		'combined_badges' => $combined_badges,
+	];
 }
 
 ?>

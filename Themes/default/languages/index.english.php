@@ -645,6 +645,7 @@ $txt['quickmod_confirm'] = 'Are you sure you want to do this?';
 $txt['spell_check'] = 'Spell Check';
 
 $txt['quick_reply'] = 'Quick Reply';
+$txt['default_avatar'] = '(use my normal avatar)';
 $txt['quick_reply_warning'] = 'Warning! This topic is currently locked, only admins and moderators can reply.';
 $txt['quick_reply_verification'] = 'After submitting your post you will be directed to the regular post page to verify your post %1$s.';
 $txt['quick_reply_verification_guests'] = '(required for all guests)';
@@ -955,5 +956,10 @@ $txt['sentence_list_format']['n'] = '{series}, and {-1}';
 // Separators used to build lists in a sentence
 $txt['sentence_list_separator'] = ', ';
 $txt['sentence_list_separator_alt'] = '; ';
+
+$txt['cannot_post_ic_without_sheet'] = 'Unfortunately, posting in-character does require your character sheet to be approved by the administrators. Please check <a href="%1$s">your character sheet</a> in case the administrators left comments.';
+$txt['cannot_post_ooc'] = 'Unfortunately you are in a character board but without a particular character selected. Please switch to a character to post in this board.';
+$txt['cannot_post_ic'] = 'Unfortunately you are in an out-of-character board and you have a character selected. Please switch to the out-of-character account to post here.';
+$txt['cannot_post_ic_guest'] = 'Unfortunately this is an in-character board. To post here you will need to sign up and make a character to post here.';
 
 ?>

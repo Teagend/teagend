@@ -711,6 +711,17 @@ function MessageIndex()
 	// Build the message index button array.
 	$context['normal_buttons'] = array();
 
+	if ($context['can_post_new'] || $context['can_post_poll'])
+	{
+		$possible_characters = get_user_possible_characters($user_info['id'], $context['current_board']);
+
+		if (!isset($possible_characters[$user_info['id_character']]))
+		{
+			$context['can_post_new'] = false;
+			$context['can_post_poll'] = false;
+		}
+	}
+
 	if ($context['can_post_new'])
 		$context['normal_buttons']['new_topic'] = array('text' => 'new_topic', 'image' => 'new_topic.png', 'lang' => true, 'url' => $scripturl . '?action=post;board=' . $context['current_board'] . '.0', 'active' => true);
 

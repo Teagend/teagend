@@ -161,6 +161,15 @@ function Post($post_errors = array())
 		else
 			$context['becomes_approved'] = true;
 
+		$possible_characters = get_user_possible_characters($user_info['id'], $board, false);
+		if (!isset($possible_characters[$user_info['id_character']]))
+		{
+			if ($user_info['is_guest'])
+				fatal_lang_error('cannot_post_as_character_guest', false);
+			else
+				fatal_lang_error('cannot_post_as_character', false, [$user_info['character_name']]);
+		}
+
 		$context['can_lock'] = allowedTo('lock_any') || ($user_info['id'] == $id_member_poster && allowedTo('lock_own'));
 		$context['can_sticky'] = allowedTo('make_sticky');
 		$context['can_move'] = allowedTo('move_any');
@@ -197,6 +206,19 @@ function Post($post_errors = array())
 		$context['can_move'] = allowedTo('move_any', $boards, true);
 		$context['can_announce'] = allowedTo('announce_topic', $boards, true) && $context['becomes_approved'];
 		$context['show_approval'] = !allowedTo('approve_posts', $boards, true) ? 0 : ($context['becomes_approved'] ? 2 : 1);
+
+		// @todo the possible characters check - against multiple boards?
+		if (count($boards) == 1)
+		{
+			$possible_characters = get_user_possible_characters($user_info['id'], $boards[0], false);
+			if (!isset($possible_characters[$user_info['id_character']]))
+			{
+				if ($user_info['is_guest'])
+					fatal_lang_error('cannot_post_as_character_guest', false);
+				else
+					fatal_lang_error('cannot_post_as_character', false, [$user_info['character_name']]);
+			}
+		}
 	}
 
 	$context['notify'] = !empty($context['notify']);
@@ -1615,7 +1637,7 @@ function Post($post_errors = array())
 function Post2()
 {
 	global $board, $topic, $txt, $modSettings, $sourcedir, $context;
-	global $user_info, $board_info, $options, $smcFunc, $settings;
+	global $user_info, $board_info, $options, $smcFunc, $settings, $avatarData;
 
 	// Sneaking off, are we?
 	if (empty($_POST) && empty($topic))
@@ -1627,6 +1649,15 @@ function Post2()
 	}
 	elseif (empty($_POST) && !empty($topic))
 		redirectexit('action=post;topic=' . $topic . '.0');
+
+	$possible_characters = get_user_possible_characters($user_info['id'], $board);
+	if (!isset($possible_characters[$user_info['id_character']]))
+	{
+		if ($user_info['is_guest'])
+			fatal_lang_error('cannot_post_as_character_guest', false);
+		else
+			fatal_lang_error('cannot_post_as_character', false, [$user_info['character_name']]);
+	}
 
 	// No need!
 	$context['robot_no_index'] = true;
@@ -2358,7 +2389,27 @@ function Post2()
 		'name' => $_POST['guestname'],
 		'email' => $_POST['email'],
 		'update_post_count' => !$user_info['is_guest'] && !isset($_REQUEST['msg']) && $board_info['posts_count'],
+		'char_id' => $user_info['id_character'],
+		'char_avatar' => 0,
 	);
+
+	// Figure out if the avatar they're using is legitimate.
+	if (!empty($avatarData[$user_info['id_character']]))
+	{
+		$char_avatar = 0;
+		$possible_avatars = $avatarData[$user_info['id_character']];
+
+		if (!empty($possible_avatars['default']['rotation']))
+		{
+			$char_avatar = 0;
+		}
+		elseif (!empty($possible_avatars['avatars']) && count($possible_avatars['avatars']) > 1)
+		{
+			$char_avatar = isset($_POST['post_avatar']) && isset($possible_avatars['avatars'][$_POST['post_avatar']]) ? (int) $_POST['post_avatar'] : 0;
+		}
+
+		$posterOptions['char_avatar'] = $char_avatar;
+	}
 
 	// This is an already existing message. Edit it.
 	if (!empty($_REQUEST['msg']))
