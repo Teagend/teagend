@@ -4438,7 +4438,6 @@ function get_char_membergroup_data()
  */
 function get_labels_and_badges($group_list)
 {
-	var_dump($group_list);
 	$group_title = null;
 	$group_color = '';
 	$groups = get_char_membergroup_data();
