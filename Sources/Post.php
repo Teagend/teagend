@@ -32,7 +32,7 @@ function Post($post_errors = array())
 {
 	global $txt, $scripturl, $topic, $modSettings, $board;
 	global $user_info, $context, $settings;
-	global $sourcedir, $smcFunc, $language, $options;
+	global $sourcedir, $smcFunc, $language, $options, $avatarData, $memberContext;
 
 	loadLanguage('Post');
 	if (!empty($modSettings['drafts_post_enabled']))
@@ -463,6 +463,7 @@ function Post($post_errors = array())
 
 	// Previewing, modifying, or posting?
 	// Do we have a body, but an error happened.
+	$selected_avatar = 0;
 	if (isset($_REQUEST['message']) || isset($_REQUEST['quickReply']) || !empty($context['post_error']))
 	{
 		if (isset($_REQUEST['quickReply']))
@@ -495,6 +496,8 @@ function Post($post_errors = array())
 		// Set up the inputs for the form.
 		$form_subject = strtr($smcFunc['htmlspecialchars']($_REQUEST['subject']), array("\r" => '', "\n" => '', "\t" => ''));
 		$form_message = $smcFunc['htmlspecialchars']($_REQUEST['message'], ENT_QUOTES);
+
+		$selected_avatar = !empty($_REQUEST['post_avatar']) ? (int) $_REQUEST['post_avatar'] : 0;
 
 		// Make sure the subject isn't too long - taking into account special characters.
 		if ($smcFunc['strlen']($form_subject) > 100)
@@ -719,7 +722,7 @@ function Post($post_errors = array())
 		$request = $smcFunc['db_query']('', '
 			SELECT
 				m.id_member, m.modified_time, m.modified_name, m.modified_reason, m.smileys_enabled, m.body,
-				m.poster_name, m.poster_email, m.subject, m.icon, m.approved,
+				m.poster_name, m.poster_email, m.subject, m.icon, m.approved, m.id_avatar,
 				COALESCE(a.size, -1) AS filesize, a.filename, a.id_attach, a.mime_type, a.id_thumb,
 				a.approved AS attachment_approved, t.id_member_started AS id_member_poster,
 				m.poster_time, log.id_action, t.id_first_msg
@@ -740,6 +743,8 @@ function Post($post_errors = array())
 		if ($smcFunc['db_num_rows']($request) == 0)
 			fatal_lang_error('no_message', false);
 		$row = $smcFunc['db_fetch_assoc']($request);
+
+		$selected_avatar = $row['id_avatar'];
 
 		$attachment_stuff = array($row);
 		while ($row2 = $smcFunc['db_fetch_assoc']($request))
@@ -918,6 +923,30 @@ function Post($post_errors = array())
 		{
 			$form_subject = isset($_GET['subject']) ? $_GET['subject'] : '';
 			$form_message = '';
+		}
+	}
+
+	// If we're posting, we need to make sure we have the character data.
+	$possible_characters = get_user_possible_characters($user_info['id'], $board);
+
+	if (isset($possible_characters[$user_info['id_character']]))
+	{
+		// Make sure we have some avatar to work with.
+		$context['current_avatar'] = get_default_avatar();
+		$context['possible_avatars'] = [];
+
+		if (!$user_info['is_guest'])
+		{
+			foreach ($memberContext[$context['user']['id']]['characters'] as $char_id => $character)
+			{
+				if ($char_id == $user_info['id_character'])
+				{
+					$context['current_avatar'] = $character['avatar'];
+					$context['possible_avatars'] = $avatarData[$char_id] ?? [];
+				}
+			}
+			if (isset($context['possible_avatars']['avatars'][$selected_avatar]))
+				$context['possible_avatars']['avatars'][$selected_avatar]['selected'] = true;
 		}
 	}
 

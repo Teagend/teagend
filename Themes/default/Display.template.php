@@ -931,6 +931,7 @@ function template_single_post($message)
 function template_quickreply()
 {
 	global $context, $modSettings, $scripturl, $options, $txt;
+	global $avatarData, $user_info;
 
 	echo '
 		<a id="quickreply_anchor"></a>
@@ -999,8 +1000,6 @@ function template_quickreply()
 	}
 	else
 	{
-		global $avatarData, $user_info;
-
 		if (!empty($context['possible_avatars']['default']['rotation']))
 		{
 			echo '

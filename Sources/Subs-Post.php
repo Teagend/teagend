@@ -2205,6 +2205,8 @@ function modifyPost(&$msgOptions, &$topicOptions, &$posterOptions)
 		$messages_columns['poster_name'] = $posterOptions['name'];
 	if (isset($posterOptions['email']))
 		$messages_columns['poster_email'] = $posterOptions['email'];
+	if (isset($posterOptions['char_avatar']))
+		$messages_columns['id_avatar'] = $posterOptions['char_avatar'];
 	if (isset($msgOptions['icon']))
 		$messages_columns['icon'] = $msgOptions['icon'];
 	if (isset($msgOptions['subject']))

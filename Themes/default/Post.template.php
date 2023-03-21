@@ -131,6 +131,57 @@ function template_main()
 						', (!empty($modSettings['drafts_keep_days']) ? ' <strong>' . sprintf($txt['draft_save_warning'], $modSettings['drafts_keep_days']) . '</strong>' : ''), '
 					</div>';
 
+	if (!empty($context['possible_avatars']['default']['rotation']))
+	{
+		echo '
+					<input type="hidden" name="post_avatar" value="0">
+					<h5>', $context['user']['character_name'], '</h5>
+					', $context['current_avatar']['large_img'];
+	}
+	elseif (!empty($context['possible_avatars']['avatars']) && count($context['possible_avatars']['avatars']) > 1)
+	{
+		echo '
+					<h5>', $context['user']['character_name'], '</h5>
+					<div id="avatar_container"></div>
+					<select name="post_avatar" id="post_avatar_selector">
+						<option value="0">', $txt['default_avatar'], '</option>';
+
+		foreach ($context['possible_avatars']['avatars'] as $id_avatar => $avatar)
+		{
+			echo '
+						<option value="', $id_avatar, '"', !empty($avatar['selected']) ? ' selected' : '', '>', $avatar['avatar_slot'], '</option>';
+		}
+		echo '
+					</select>
+					<script>
+						var avatars = ', json_encode($context['possible_avatars']['avatars']), ';
+						function updateAvatar()
+						{
+							var selected_avatar = document.getElementById("post_avatar_selector").value;
+							if (selected_avatar == "0") {
+								for (var i in avatars) {
+									if (avatars[i].is_default)  {
+										document.getElementById("avatar_container").innerHTML = avatars[i].large_img;
+									}
+								}
+							}
+							else
+							{
+								document.getElementById("avatar_container").innerHTML = avatars[selected_avatar].large_img;
+							}
+						}
+						updateAvatar();
+						document.getElementById("post_avatar_selector").addEventListener("change", updateAvatar, false);
+					</script>';
+	}
+	else
+	{
+		echo '
+					<input type="hidden" name="post_avatar" value="0">
+					<h5>', $context['user']['character_name'], '</h5>
+					', $context['current_avatar']['large_img'];
+	}
+
 	// The post header... important stuff
 	template_post_header();
 
